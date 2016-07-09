@@ -62,14 +62,17 @@ export default class Lexer {
         else break;
       }
       const numString = nums.join("");
+      if (numString[0] == '0')  // If it starts with 0, return as a string
+        return new Token(NUMBER, numString);
+
       const number = Number.parseInt(numString);
-      if (Number.isFinite(number))return number;
+      if (Number.isFinite(number)) return number;
       else return new Token(NUMBER, numString);
     } else {
       // id
       let chars = [];
       const pos2 = this.pos;
-      for (var i = pos2; i < this.len+1; i++) {
+      for (var i = pos2; i < this.len + 1; i++) {
         this.pos = i;
         // console.log(this.pos, i);
         // console.log(this.pos, this.str.charAt(i));
