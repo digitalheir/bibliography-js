@@ -13,7 +13,8 @@
     "test": "mocha --compilers js:babel-core/register"
   },
   "dependencies": {
-    "nearley": "latest"
+    "nearley": "latest",
+    "immutable": "3.8.1"
   },
   "devDependencies": {
     "babel-cli": "*",

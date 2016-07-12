@@ -13,19 +13,22 @@ var ws = {test: function(x) {return typeof x== 'object' && x.type=='ws';}}
 var num = {test: function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')}}
 var pound = {literal: '#' }
 var eq = {literal: '=' }
+var paren_l = {literal: '(' }
+var paren_r = {literal: ')' }
 var brace_l = {literal: '{' }
 var brace_r = {literal: '}' }
 var quote_dbl = {literal: '"' }
 var comma = {literal: ',' }
 
 function addToObj(obj, keyval){
-  if(obj[keyval.key]) {
-    console.log("WARNING: field "+keyval.key+ " was already defined on object "+obj._id+". Ignoring this value.");
-    return;
-  }else{
-    obj[keyval.key]=keyval.value;
-    return obj;
-  }
+  var key = keyval[0].toLowerCase();
+      if(obj.fields[key]) {
+      console.log("WARNING: field "+key+ " was already defined on object "+obj._id+". Ignoring this value.");
+      return;
+    }else{
+      obj.fields[key]=keyval[1];
+      return obj;
+    }
 }
 
 function joinTokens(arr){
@@ -78,23 +81,26 @@ _                  -> %ws:?
 
 entry              -> (entry_bib | entry_comment | entry_preamble | entry_string) {%  function (data, location, reject) {return data[0][0];} %}
 
+# TODO macro for outer braces: can be either { } or ( )
 entry_bib          -> %entry_type_bib _ %brace_l _ refkey _ %comma _ (keyval _ %comma _):* keyval (_ %comma):? _ %brace_r
                       {% function (data, location, reject) {
                              var obj = {
-                              _id: data[4]
+                              _id: data[4],
+                              fields:{}
                              };
+                             obj['@type'] = data[0].string;
                              var keyvals = data[8];
-                             for(var kv=0;kv<keyvals.length;kv++){
-                               addToObj(obj, keyvals[kv][0]);
-                             }
-                             addToObj(obj, data[8]);
+                             for(var kv=0;kv<keyvals.length;kv++) addToObj(obj, keyvals[kv][0]);
+                             addToObj(obj, data[9]);
                              return obj;
                          } %}
+
+
 entry_string       -> %entry_type_string _ %brace_l _ keyval _ %brace_r
                       {% function (data, location, reject) {
                              return {type: 'string', key: data[4][0], value: data[4][1]};
                          } %}
-entry_preamble     -> %entry_type_preamble %brace_l non_closing_bracket:+ %brace_r
+entry_preamble     -> %entry_type_preamble %brace_l value_string %brace_r
 
 #
 # See http://ftp.math.purdue.edu/mirrors/ctan.org/info/bibtex/tamethebeast/ttb_en.pdf:
@@ -111,7 +117,9 @@ entry_comment      -> %entry_type_comment %brace_l braced_comment %brace_r {% fu
                                                                               }
                                                                            %}
 braced_comment     -> %brace_l (non_bracket|braced_comment):* %brace_r {% function (data, location, reject) {
-                                                                           return "{"+joinTokens(data[1])+"}";
+                                                                           var tkz = [];
+                                                                           for(var i in data[1]) tkz.push(data[1][i][0]);
+                                                                           return {type:'braced', data:tkz};
                                                                          }
                                                                        %}
 
@@ -129,7 +137,7 @@ key_string         -> stringreftoken:+ {% function (data, location, reject) { re
 #   in the second case.
 # • For numerical values, curly braces and double quotes can be omitted.
 #
-value_string       ->  (quoted_string_or_ref (%pound quoted_string_or_ref):* | braced_string | %num)
+value_string       ->  (quoted_string_or_ref (_ %pound _ quoted_string_or_ref):* | braced_string | %num)
                       {% function (data, location, reject) {
                         //console.log("DATA",JSON.stringify(data));
                              var match = data[0];
@@ -137,14 +145,14 @@ value_string       ->  (quoted_string_or_ref (%pound quoted_string_or_ref):* | b
                               // quoted string
                               var tokenz = [];
                               tokenz.push(match[0]);
-                              for(var i=0;i<match[1].length;i++) tokenz.push(match[1][i]);
+                              for(var i=0;i<match[1].length;i++) tokenz.push(match[1][i][3]);
                               return tokenz;
                              } else return match;
                          }
                       %}
 
-braced_string         -> %brace_l %brace_r
-                         {% function (data, location, reject) { return joinTokens(data[1]); } %}
+braced_string         -> braced_comment
+                         {% function (data, location, reject) { return data[0]; } %}
 quoted_string_or_ref -> (quoted_string | string_ref) {% function (data, location, reject) {
                                                           //console.log(data);
                                                           if (data[0][0].type=='quotedstring') return data[0][0].data;
@@ -152,11 +160,11 @@ quoted_string_or_ref -> (quoted_string | string_ref) {% function (data, location
                                                         }
                                                      %}
 
-quoted_string        -> %quote_dbl (escaped_quote|non_quote_dbl):* %quote_dbl
+quoted_string        -> %quote_dbl (escaped_quote|non_quote_dbl|braced_string):* %quote_dbl
                         {% function (data, location, reject) {
                              var tks = [];
                              for(var i in data[1]) tks.push(data[1][i][0]);
-                             return {type:'quotedstring', data: joinTokens(tks)};
+                             return {type:'quotedstring', data:tks};
                            }
                         %}
 escaped_quote      -> %brace_l %quote_dbl %brace_r {% function (data, location, reject) { return '"'; } %}
@@ -165,25 +173,14 @@ string_ref         -> (stringreftoken_n_num stringreftoken:*)
                       {% function (data, location, reject) { var str = data[0][0]+joinTokens(data[0][1]); return {stringref: str}; } %}
 
 # Text that is enclosed in braces is marked not to be touched by any formating instructions. For instance, when a style defines the title to become depicted using only lowercase, italic letters, the enclosed part will be left untouched. "An Introduction To {BibTeX}" would become ,,an introduction to the BibTeX'' when such a style is applied. Nested braces are ignored.
-braced_text         ->  %brace_l braced_text_content %brace_r
-                        {% function (data, location, reject) { return joinTokens(data[1]); } %}
-braced_text_content ->  %brace_l braced_text_content %brace_l | non_bracket:*
-                        {% function (data, location, reject) {
-                             if(data.length >= 3) return data[1];
-                             var tks=[];
-                             for(var t=0;t<data[0].length;t++)
-                               if(data[0][t]!='{' && data[0][t]!='}') tks.push(data[0][t]);
-                             return joinTokens(tks);
-                           }
-                        %}
 
 
 
-refkey              -> (%tok_id |       %num |          %brace_l | %brace_r     %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_quote_dbl       -> (%tok_id | %ws | %num | %comma | %brace_l | %quote_dbl | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_closing_bracket -> (%tok_id | %ws | %num | %comma | %brace_l | %brace_r   | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_bracket         -> (%tok_id | %ws | %num | %comma |            %brace_r   | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+refkey              -> (%paren_l | %paren_r | %tok_id |       %num |                                  %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+non_quote_dbl       -> (%paren_l | %paren_r | %tok_id | %ws | %num | %comma |                         %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+non_closing_bracket -> (%paren_l | %paren_r | %tok_id | %ws | %num | %comma | %brace_l | %brace_r   | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+non_bracket         -> (%paren_l | %paren_r | %tok_id | %ws | %num | %comma |            %brace_r   | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
 # Non-white non-brace, non-comma
-stringreftoken      -> (%tok_id | %num | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-stringreftoken_n_num ->(%tok_id |        %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_entry           -> (%tok_id | %ws | %num | %comma | %eq | %brace_l | %brace_r | %pound) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+stringreftoken      -> (%paren_l | %paren_r | %tok_id | %num | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+stringreftoken_n_num ->(%paren_l | %paren_r | %tok_id |        %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+non_entry           -> (%paren_l | %paren_r | %tok_id | %ws | %num | %comma | %eq | %brace_l | %brace_r | %pound) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}

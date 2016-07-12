@@ -1,9 +1,4 @@
-class Token {
-  constructor(type, string) {
-    this.type = type;
-    this.string = string;
-  }
-}
+import Token from './Token';
 
 const ID = "id";
 const whitespace = "ws";
@@ -107,6 +102,8 @@ export default class Lexer {
 
   static isSpecialChar(c) {
     return (c == '@'
+    || c == '('
+    || c == ')'
     || c == '{'
     || c == '}'
     || c == '#'
