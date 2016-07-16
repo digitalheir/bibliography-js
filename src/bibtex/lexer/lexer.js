@@ -72,11 +72,12 @@ export default class Lexer {
         // console.log(this.pos, i);
         // console.log(this.pos, this.str.charAt(i));
         const charAtI = this.str.charAt(i);
-        if (!Lexer.isId(charAtI)) break;
-        else if (charAtI == '\\' && (this.str.charAt(i + 1) == '\\' || Lexer.isSpecialChar(this.str.charAt(i + 1)))) {
-          i++;
-          this.pos = i;
-          chars.push(this.str.charAt(i));
+        if (!Lexer.isId(charAtI)) {
+          break;
+        //else if (charAtI == '\\' && (this.str.charAt(i + 1) == '\\' || Lexer.isSpecialChar(this.str.charAt(i + 1)))) {
+        //  i++;
+        //  this.pos = i;
+        //  chars.push(this.str.charAt(i));
         } else {
           chars.push(charAtI);
         }
@@ -109,6 +110,7 @@ export default class Lexer {
     || c == '#'
     || c == '='
     || c == ','
+    || c == '\\'
     || c == '"');
   }
 

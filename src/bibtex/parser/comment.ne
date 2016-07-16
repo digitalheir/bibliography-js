@@ -1,31 +1,3 @@
-# For more information, see:
-#     http://ftp.math.purdue.edu/mirrors/ctan.org/info/bibtex/tamethebeast/ttb_en.pdf
-#     http://artis.imag.fr/~Xavier.Decoret/resources/xdkbibtex/bibtex_summary.html
-#     http://www.bibtex.org/Format/
-
-
-#
-# See http://ftp.math.purdue.edu/mirrors/ctan.org/info/bibtex/tamethebeast/ttb_en.pdf:
-#
-#   There is a special entry type named @comment. The main use of such an entry type is to comment a large part
-#    of the bibliography easily, since anything outside an entry is already a comment, and commenting out one
-#    entry may be achieved by just removing its initial @
-#
-# ^ this suggests that opening braces within the comment MUST be closed, and the comment ends on the first ending brace
-#   that balances with this opening brace
-#
-#
-# Case-independent sequence of non-whitespace, non-brace, non-commas
-#
-
-#
-# • Values (i.e. right hand sides of each assignment) can be either between curly braces or between
-#   double quotes. The main difference is that you can write double quotes in the first case, and not
-#   in the second case.
-# • For numerical values, curly braces and double quotes can be omitted.
-#
-# Text that is enclosed in braces is marked not to be touched by any formating instructions. For instance, when a style defines the title to become depicted using only lowercase, italic letters, the enclosed part will be left untouched. "An Introduction To {BibTeX}" would become ,,an introduction to the BibTeX'' when such a style is applied. Nested braces are ignored.
-
 @{%
 var isNumber = function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')};
 var tok_id =              {test: function(x) {return typeof x == 'object' && x.type=='id'; }}
@@ -80,22 +52,21 @@ function joinTokens(arr){
 #####################
 main  -> non_entry:? (entry non_entry:?):*  {%
                                                    function (data, location, reject) {
-                                                     var comments = [];
-                                                     var entries = [];
+                                                     var objs=[];
                                                      //console.log(JSON.stringify(data));
-                                                     if(data[0]) comments.push(data[0]);
+                                                     if(data[0]) objs.push(data[0]);
                                                      for(var i=0;i < data[1].length;i++){
-                                                      entries.push(data[1][i][0]);
-                                                      if(data[1][i][1]) comments.push(data[1][i][1]);
+                                                      objs.push(data[1][i][0]);
+                                                      if(data[1][i][1]) objs.push(data[1][i][1]);
                                                      }
-                                                     return {comments: comments, entries: entries};
+                                                     return objs;
                                                    }
                                                  %}
 _ -> %ws:*
 parenthesized[X]        -> %paren_l $X %paren_r {% function (data, location, reject) { return data[1]; } %}
 braced[X]               -> %brace_l $X %brace_r {% function (data, location, reject) { return data[1]; } %}
-parenthesizedPadded[X]  -> %paren_l _ $X _ %paren_r  {% function (data, location, reject) { return data[2]; } %}
-bracedPadded[X]         -> %brace_l _ $X _ %brace_r  {% function (data, location, reject) { return data[2]; } %}
+parenthesizedPadded[X]  ->  %paren_l _ $X _ %paren_r {% function (data, location, reject) { return data[2]; } %}
+bracedPadded[X]         -> %brace_l _ $X _ %brace_r {% function (data, location, reject) { return data[2]; } %}
 
 #####################
 # ENTRY
@@ -124,8 +95,8 @@ comment                    -> (entry_body_comment|non_bracket):*         {% func
                                                                                 toeknz.push(data[0][tk][0]);
                                                                               return data[0];
                                                                             } %}
-entry_body_comment         -> (parenthesized[comment] | braced[comment]) {% function (data, location, reject) { return data[0][0][0]; } %}
-entry_body_string          -> (parenthesizedPadded[keyval] | bracedPadded[keyval]) {% function (data, location, reject) { return data[0][0][0]; } %}
+entry_body_comment         -> (parenthesized[comment] | braced[comment]) {% function (data, location, reject) { return data[0][0]; } %}
+entry_body_string          -> (parenthesizedPadded[keyval] | bracedPadded[keyval]) {% function (data, location, reject) { return data[0][0]; } %}
 entry_body_bib             -> (parenthesizedPadded[bib_content] | bracedPadded[bib_content]) {% function (data, location, reject) {
                                                                                                 var obj = data[0][0][0];
                                                                                                 return obj;
@@ -215,9 +186,9 @@ value_string       ->  (quoted_string_or_ref (_ %pound _ quoted_string_or_ref):*
                               var tokenz = [];
                               tokenz.push(match[0]);
                               for(var i=0;i<match[1].length;i++) tokenz.push(match[1][i][3]);
-                              return {type: 'quotedstringwrapper', data: tokenz};
+                              return tokenz;
                              } else if(match[0].type == 'braced')
-                               return {type: 'bracedstringwrapper', data: match[0].data};
+                               return match[0].data;
                              //else if(isNumber(match[0]) return [match[0]];
                              else throw new Error("Don't know how to handle value "+JSON.stringify(match[0]));
                          }

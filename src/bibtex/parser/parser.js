@@ -2,29 +2,33 @@
 // http://github.com/Hardmath123/nearley
 function id(x) {return x[0]; }
 
-var tok_id = {test: function(x) {return typeof x== 'object' && x.type=='id'; }}
-var entry_type_bib = {test: function(x) {return typeof x== 'object' && x.type=='@bib'; }}
-var entry_type_string = {test: function(x) {return typeof x== 'object' && x.type=='@string'; }}
-var entry_type_preamble = {test: function(x) {return typeof x== 'object' && x.type=='@preamble'; }}
-var entry_type_comment = {test: function(x) {return typeof x== 'object' && x.type=='@comment'; }}
-var ws = {test: function(x) {return typeof x== 'object' && x.type=='ws';}}
-var num = {test: function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')}}
-var pound = {literal: '#' }
-var eq = {literal: '=' }
-var paren_l = {literal: '(' }
-var paren_r = {literal: ')' }
-var brace_l = {literal: '{' }
-var brace_r = {literal: '}' }
+var isNumber = function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')};
+var tok_id =              {test: function(x) {return typeof x == 'object' && x.type=='id'; }}
+var entry_type_bib =      {test: function(x) {return typeof x == 'object' && x.type=='@bib'; }}
+var entry_type_string =   {test: function(x) {return typeof x == 'object' && x.type=='@string'; }}
+var entry_type_preamble = {test: function(x) {return typeof x == 'object' && x.type=='@preamble'; }}
+var entry_type_comment =  {test: function(x) {return typeof x == 'object' && x.type=='@comment'; }}
+var ws =                  {test: function(x) {return typeof x == 'object' && x.type=='ws';}}
+var num =                 {test: isNumber}
+var pound =     {literal: '#' }
+var eq =        {literal: '=' }
+var esc =       {literal: '\\' }
+var paren_l =   {literal: '(' }
+var paren_r =   {literal: ')' }
+var brace_l =   {literal: '{' }
+var brace_r =   {literal: '}' }
 var quote_dbl = {literal: '"' }
-var comma = {literal: ',' }
+var comma =     {literal: ',' }
+
 
 function addToObj(obj, keyval){
-  var key = keyval[0].toLowerCase();
-      if(obj[key]) {
+  if(!keyval.type == 'keyval') throw new Error("Expected a keyval object");
+  var key = keyval.key.toLowerCase();
+      if(obj.fields[key]) {
       console.log("WARNING: field "+key+ " was already defined on object "+obj._id+". Ignoring this value.");
       return;
     }else{
-      obj[key]=keyval[1];
+      obj.fields[key]=keyval.value;
       return obj;
     }
 }
@@ -44,109 +48,119 @@ function joinTokens(arr){
 
 export default {
     ParserRules: [
-    {"name": "main$ebnf$1", "symbols": []},
-    {"name": "main$ebnf$1$subexpression$1", "symbols": ["entry", "outside_entry"]},
-    {"name": "main$ebnf$1", "symbols": ["main$ebnf$1$subexpression$1", "main$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "main", "symbols": ["outside_entry", "main$ebnf$1"], "postprocess": 
+    {"name": "main$ebnf$1", "symbols": ["non_entry"], "postprocess": id},
+    {"name": "main$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "main$ebnf$2", "symbols": []},
+    {"name": "main$ebnf$2$subexpression$1$ebnf$1", "symbols": ["non_entry"], "postprocess": id},
+    {"name": "main$ebnf$2$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "main$ebnf$2$subexpression$1", "symbols": ["entry", "main$ebnf$2$subexpression$1$ebnf$1"]},
+    {"name": "main$ebnf$2", "symbols": ["main$ebnf$2$subexpression$1", "main$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "main", "symbols": ["main$ebnf$1", "main$ebnf$2"], "postprocess":
         function (data, location, reject) {
-          var objs=[];
-          if(data[0].length > 0) objs.push(data[0]);
-          for(var i in data[1]){
-           objs.push(data[1][i][0]);
-           if(data[1][i][1].length > 0) objs.push(data[1][i][1]);
+          var comments = [];
+          var entries = [];
+          //console.log(JSON.stringify(data));
+          if(data[0]) comments.push(data[0]);
+          for(var i=0;i < data[1].length;i++){
+           entries.push(data[1][i][0]);
+           if(data[1][i][1]) comments.push(data[1][i][1]);
           }
-          return objs;
+          return {comments: comments, entries: entries};
         }
                                                          },
-    {"name": "outside_entry$ebnf$1", "symbols": []},
-    {"name": "outside_entry$ebnf$1", "symbols": ["non_entry", "outside_entry$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "outside_entry", "symbols": ["outside_entry$ebnf$1"], "postprocess":  function (data, location, reject) {
-            var tokenz = [];
-            for(var i=0;i<data[0].length;i++){
-              if(typeof data[0][i] == 'string' || typeof data[0][i] == 'number' ) tokenz.push(data[0][i]);
-              else if(data[0][i].string) tokenz.push(data[0][i].string);
-              else if(data[0][i].length == 1) tokenz.push(data[0][i][0]);
-              else throw new Error("Can't handle token "+JSON.stringify(data[0][i]));
-            }
-            return joinTokens(tokenz);
-        }
-                         },
-    {"name": "_$ebnf$1", "symbols": [ws], "postprocess": id},
-    {"name": "_$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "_$ebnf$1", "symbols": []},
+    {"name": "_$ebnf$1", "symbols": [ws, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"]},
-    {"name": "entry$subexpression$1", "symbols": ["entry_bib"]},
-    {"name": "entry$subexpression$1", "symbols": ["entry_comment"]},
-    {"name": "entry$subexpression$1", "symbols": ["entry_preamble"]},
-    {"name": "entry$subexpression$1", "symbols": ["entry_string"]},
-    {"name": "entry", "symbols": ["entry$subexpression$1"], "postprocess": function (data, location, reject) {return data[0][0];}},
-    {"name": "entry_bib$ebnf$1", "symbols": []},
-    {"name": "entry_bib$ebnf$1$subexpression$1", "symbols": ["keyval", "_", comma, "_"]},
-    {"name": "entry_bib$ebnf$1", "symbols": ["entry_bib$ebnf$1$subexpression$1", "entry_bib$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "entry_bib$ebnf$2$subexpression$1", "symbols": ["_", comma]},
-    {"name": "entry_bib$ebnf$2", "symbols": ["entry_bib$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "entry_bib$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "entry_bib", "symbols": [entry_type_bib, "_", brace_l, "_", "refkey", "_", comma, "_", "entry_bib$ebnf$1", "keyval", "entry_bib$ebnf$2", "_", brace_r], "postprocess":  function (data, location, reject) {
+    {"name": "entry_decl$subexpression$1", "symbols": [entry_type_bib]},
+    {"name": "entry_decl$subexpression$1", "symbols": [entry_type_string]},
+    {"name": "entry_decl$subexpression$1", "symbols": [entry_type_preamble]},
+    {"name": "entry_decl$subexpression$1", "symbols": [entry_type_comment]},
+    {"name": "entry_decl", "symbols": ["entry_decl$subexpression$1"], "postprocess": function (data, location, reject) { return data[0][0]; }},
+    {"name": "entry$subexpression$1", "symbols": ["bib_entry"]},
+    {"name": "entry$subexpression$1", "symbols": ["string_entry"]},
+    {"name": "entry$subexpression$1", "symbols": ["preamble_entry"]},
+    {"name": "entry$subexpression$1", "symbols": ["comment_entry"]},
+    {"name": "entry", "symbols": ["entry$subexpression$1"], "postprocess": function (data, location, reject) { return data[0][0]; }},
+    {"name": "comment$ebnf$1", "symbols": []},
+    {"name": "comment$ebnf$1$subexpression$1", "symbols": ["entry_body_comment"]},
+    {"name": "comment$ebnf$1$subexpression$1", "symbols": ["non_bracket"]},
+    {"name": "comment$ebnf$1", "symbols": ["comment$ebnf$1$subexpression$1", "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "comment", "symbols": ["comment$ebnf$1"], "postprocess":  function (data, location, reject) {
+          var toeknz=[];
+          for(var tk=0; tk < data[0].length; tk++)
+            toeknz.push(data[0][tk][0]);
+          return data[0];
+        } },
+    {"name": "entry_body_comment$subexpression$1$macrocall$2", "symbols": ["comment"]},
+    {"name": "entry_body_comment$subexpression$1$macrocall$1", "symbols": [paren_l, "entry_body_comment$subexpression$1$macrocall$2", paren_r], "postprocess": function (data, location, reject) { return data[1]; }},
+    {"name": "entry_body_comment$subexpression$1", "symbols": ["entry_body_comment$subexpression$1$macrocall$1"]},
+    {"name": "entry_body_comment$subexpression$1$macrocall$4", "symbols": ["comment"]},
+    {"name": "entry_body_comment$subexpression$1$macrocall$3", "symbols": [brace_l, "entry_body_comment$subexpression$1$macrocall$4", brace_r], "postprocess": function (data, location, reject) { return data[1]; }},
+    {"name": "entry_body_comment$subexpression$1", "symbols": ["entry_body_comment$subexpression$1$macrocall$3"]},
+    {"name": "entry_body_comment", "symbols": ["entry_body_comment$subexpression$1"], "postprocess": function (data, location, reject) { return data[0][0][0]; }},
+    {"name": "entry_body_string$subexpression$1$macrocall$2", "symbols": ["keyval"]},
+    {"name": "entry_body_string$subexpression$1$macrocall$1", "symbols": [paren_l, "_", "entry_body_string$subexpression$1$macrocall$2", "_", paren_r], "postprocess": function (data, location, reject) { return data[2]; }},
+    {"name": "entry_body_string$subexpression$1", "symbols": ["entry_body_string$subexpression$1$macrocall$1"]},
+    {"name": "entry_body_string$subexpression$1$macrocall$4", "symbols": ["keyval"]},
+    {"name": "entry_body_string$subexpression$1$macrocall$3", "symbols": [brace_l, "_", "entry_body_string$subexpression$1$macrocall$4", "_", brace_r], "postprocess": function (data, location, reject) { return data[2]; }},
+    {"name": "entry_body_string$subexpression$1", "symbols": ["entry_body_string$subexpression$1$macrocall$3"]},
+    {"name": "entry_body_string", "symbols": ["entry_body_string$subexpression$1"], "postprocess": function (data, location, reject) { return data[0][0][0]; }},
+    {"name": "entry_body_bib$subexpression$1$macrocall$2", "symbols": ["bib_content"]},
+    {"name": "entry_body_bib$subexpression$1$macrocall$1", "symbols": [paren_l, "_", "entry_body_bib$subexpression$1$macrocall$2", "_", paren_r], "postprocess": function (data, location, reject) { return data[2]; }},
+    {"name": "entry_body_bib$subexpression$1", "symbols": ["entry_body_bib$subexpression$1$macrocall$1"]},
+    {"name": "entry_body_bib$subexpression$1$macrocall$4", "symbols": ["bib_content"]},
+    {"name": "entry_body_bib$subexpression$1$macrocall$3", "symbols": [brace_l, "_", "entry_body_bib$subexpression$1$macrocall$4", "_", brace_r], "postprocess": function (data, location, reject) { return data[2]; }},
+    {"name": "entry_body_bib$subexpression$1", "symbols": ["entry_body_bib$subexpression$1$macrocall$3"]},
+    {"name": "entry_body_bib", "symbols": ["entry_body_bib$subexpression$1"], "postprocess":  function (data, location, reject) {
+          var obj = data[0][0][0];
+          return obj;
+        } },
+    {"name": "bib_content$ebnf$1", "symbols": []},
+    {"name": "bib_content$ebnf$1$subexpression$1", "symbols": ["keyval", "_", comma, "_"]},
+    {"name": "bib_content$ebnf$1", "symbols": ["bib_content$ebnf$1$subexpression$1", "bib_content$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "bib_content$ebnf$2$subexpression$1", "symbols": ["_", comma]},
+    {"name": "bib_content$ebnf$2", "symbols": ["bib_content$ebnf$2$subexpression$1"], "postprocess": id},
+    {"name": "bib_content$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "bib_content", "symbols": ["key_string", "_", comma, "_", "bib_content$ebnf$1", "keyval", "bib_content$ebnf$2"], "postprocess":  function (data, location, reject) {
             var obj = {
-             _id: data[4],
-             fields:{}
+             _id: data[0],
+             fields:[]
             };
-            obj['@type'] = data[0].string;
-            var keyvals = data[8];
-            for(var kv=0;kv<keyvals.length;kv++) addToObj(obj.fields, keyvals[kv][0]);
-            addToObj(obj.fields, data[9]);
+            var keyvals = data[4];
+            for(var kv=0;kv<keyvals.length;kv++) {
+              obj.fields.push(keyvals[kv][0]);
+            }
+            obj.fields.push(data[5]);
             return obj;
         } },
-    {"name": "entry_string", "symbols": [entry_type_string, "_", brace_l, "_", "keyval", "_", brace_r], "postprocess":  function (data, location, reject) {
-            return {type: 'string', key: data[4][0], value: data[4][1]};
-        } },
-    {"name": "entry_preamble$ebnf$1", "symbols": ["non_closing_bracket"]},
-    {"name": "entry_preamble$ebnf$1", "symbols": ["non_closing_bracket", "entry_preamble$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "entry_preamble", "symbols": [entry_type_preamble, brace_l, "entry_preamble$ebnf$1", brace_r]},
-    {"name": "entry_comment", "symbols": [entry_type_comment, brace_l, "braced_comment", brace_r], "postprocess":  function (data, location, reject) {
-          return {type: 'comment', data: data[2]};
-        }
-                                                                                   },
-    {"name": "braced_comment$ebnf$1", "symbols": []},
-    {"name": "braced_comment$ebnf$1$subexpression$1", "symbols": ["non_bracket"]},
-    {"name": "braced_comment$ebnf$1$subexpression$1", "symbols": ["braced_comment"]},
-    {"name": "braced_comment$ebnf$1", "symbols": ["braced_comment$ebnf$1$subexpression$1", "braced_comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "braced_comment", "symbols": [brace_l, "braced_comment$ebnf$1", brace_r], "postprocess":  function (data, location, reject) {
+    {"name": "bib_entry", "symbols": [entry_type_bib, "_", "entry_body_bib"], "postprocess":  function (data, location, reject) {
+           var obj = {
+                       _id: data[2]._id,
+                      };
+           obj['@type'] = data[0].string;
+           obj.fields = {};
+
+           var keyvals = data[2].fields;
+           for(var kv=0;kv<keyvals.length;kv++) {
+             addToObj(obj, keyvals[kv]);
+           }
+           return obj;
+        }},
+    {"name": "string_entry", "symbols": [entry_type_string, "_", "entry_body_string"], "postprocess": function (data, location, reject) { return {type: 'string', data: data[2]}; }},
+    {"name": "preamble_entry", "symbols": [entry_type_preamble, "_", "entry_body_comment"], "postprocess": function (data, location, reject) { return {type: 'preamble', data: data[2]}; }},
+    {"name": "comment_entry", "symbols": [entry_type_comment, "_", "entry_body_comment"], "postprocess": function (data, location, reject) { return {type: 'comment', data: data[2]}; }},
+    {"name": "keyval", "symbols": ["key_string", "_", eq, "_", "value_string"], "postprocess": function (data, location, reject) {return {type: 'keyval', key: data[0], value: data[4]};}},
+    {"name": "braced_string$ebnf$1", "symbols": []},
+    {"name": "braced_string$ebnf$1$subexpression$1", "symbols": ["non_brace"]},
+    {"name": "braced_string$ebnf$1$subexpression$1", "symbols": ["braced_string"]},
+    {"name": "braced_string$ebnf$1", "symbols": ["braced_string$ebnf$1$subexpression$1", "braced_string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "braced_string", "symbols": [brace_l, "braced_string$ebnf$1", brace_r], "postprocess":  function (data, location, reject) {
           var tkz = [];
           for(var i in data[1]) tkz.push(data[1][i][0]);
           return {type:'braced', data:tkz};
         }
-                                                                               },
-    {"name": "keyval", "symbols": ["key_string", "_", eq, "_", "value_string"], "postprocess": function (data, location, reject) {return [data[0], data[4]];}},
-    {"name": "key_string$ebnf$1", "symbols": ["stringreftoken"]},
-    {"name": "key_string$ebnf$1", "symbols": ["stringreftoken", "key_string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "key_string", "symbols": ["key_string$ebnf$1"], "postprocess": function (data, location, reject) { return joinTokens(data[0]).toLowerCase(); }},
-    {"name": "value_string$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "value_string$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", pound, "_", "quoted_string_or_ref"]},
-    {"name": "value_string$subexpression$1$ebnf$1", "symbols": ["value_string$subexpression$1$ebnf$1$subexpression$1", "value_string$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "value_string$subexpression$1", "symbols": ["quoted_string_or_ref", "value_string$subexpression$1$ebnf$1"]},
-    {"name": "value_string$subexpression$1", "symbols": ["braced_string"]},
-    {"name": "value_string$subexpression$1", "symbols": [num]},
-    {"name": "value_string", "symbols": ["value_string$subexpression$1"], "postprocess":  function (data, location, reject) {
-        //console.log("DATA",JSON.stringify(data));
-             var match = data[0];
-             if(match.length == 2){
-              // quoted string
-              var tokenz = [];
-              tokenz.push(match[0]);
-              for(var i=0;i<match[1].length;i++) tokenz.push(match[1][i][3]);
-              return tokenz;
-             } else return match;
-         }
-                              },
-    {"name": "braced_string", "symbols": ["braced_comment"], "postprocess": function (data, location, reject) { return data[0]; }},
-    {"name": "quoted_string_or_ref$subexpression$1", "symbols": ["quoted_string"]},
-    {"name": "quoted_string_or_ref$subexpression$1", "symbols": ["string_ref"]},
-    {"name": "quoted_string_or_ref", "symbols": ["quoted_string_or_ref$subexpression$1"], "postprocess":  function (data, location, reject) {
-          //console.log(data);
-          if (data[0][0].type=='quotedstring') return data[0][0].data;
-          else{return data[0][0];}
-        }
-                                                             },
+
+                                                                                                        },
     {"name": "quoted_string$ebnf$1", "symbols": []},
     {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["escaped_quote"]},
     {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["non_quote_dbl"]},
@@ -158,63 +172,60 @@ export default {
           return {type:'quotedstring', data:tks};
         }
                                 },
-    {"name": "escaped_quote", "symbols": [brace_l, quote_dbl, brace_r], "postprocess": function (data, location, reject) { return '"'; }},
-    {"name": "string_ref$subexpression$1$ebnf$1", "symbols": []},
-    {"name": "string_ref$subexpression$1$ebnf$1", "symbols": ["stringreftoken", "string_ref$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "string_ref$subexpression$1", "symbols": ["stringreftoken_n_num", "string_ref$subexpression$1$ebnf$1"]},
-    {"name": "string_ref", "symbols": ["string_ref$subexpression$1"], "postprocess": function (data, location, reject) { var str = data[0][0]+joinTokens(data[0][1]); return {stringref: str}; }},
-    {"name": "refkey$subexpression$1", "symbols": [paren_l]},
-    {"name": "refkey$subexpression$1", "symbols": [paren_r]},
-    {"name": "refkey$subexpression$1", "symbols": [tok_id]},
-    {"name": "refkey$subexpression$1", "symbols": [num]},
-    {"name": "refkey$subexpression$1", "symbols": [entry_type_bib]},
-    {"name": "refkey$subexpression$1", "symbols": [entry_type_string]},
-    {"name": "refkey$subexpression$1", "symbols": [entry_type_preamble]},
-    {"name": "refkey$subexpression$1", "symbols": [entry_type_comment]},
-    {"name": "refkey$subexpression$1", "symbols": [pound]},
-    {"name": "refkey", "symbols": ["refkey$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_l]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_r]},
+    {"name": "escaped_quote", "symbols": [esc, quote_dbl]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [tok_id]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [ws]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [num]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [comma]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_bib]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_string]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_preamble]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_comment]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [ws]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [num]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [pound]},
     {"name": "non_quote_dbl$subexpression$1", "symbols": [eq]},
-    {"name": "non_quote_dbl", "symbols": ["non_quote_dbl$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [paren_l]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [paren_r]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [tok_id]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [ws]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [num]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [comma]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [brace_l]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [brace_r]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [entry_type_bib]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [entry_type_string]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [entry_type_preamble]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [entry_type_comment]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [pound]},
-    {"name": "non_closing_bracket$subexpression$1", "symbols": [eq]},
-    {"name": "non_closing_bracket", "symbols": ["non_closing_bracket$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
-    {"name": "non_bracket$subexpression$1", "symbols": [paren_l]},
-    {"name": "non_bracket$subexpression$1", "symbols": [paren_r]},
-    {"name": "non_bracket$subexpression$1", "symbols": [tok_id]},
-    {"name": "non_bracket$subexpression$1", "symbols": [ws]},
-    {"name": "non_bracket$subexpression$1", "symbols": [num]},
-    {"name": "non_bracket$subexpression$1", "symbols": [comma]},
-    {"name": "non_bracket$subexpression$1", "symbols": [brace_r]},
-    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_bib]},
-    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_string]},
-    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_preamble]},
-    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_comment]},
-    {"name": "non_bracket$subexpression$1", "symbols": [pound]},
-    {"name": "non_bracket$subexpression$1", "symbols": [eq]},
-    {"name": "non_bracket", "symbols": ["non_bracket$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [esc]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_l]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_r]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [brace_l]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [brace_r]},
+    {"name": "non_quote_dbl$subexpression$1", "symbols": [comma]},
+    {"name": "non_quote_dbl", "symbols": ["non_quote_dbl$subexpression$1"]},
+    {"name": "key_string$ebnf$1", "symbols": ["stringreftoken"]},
+    {"name": "key_string$ebnf$1", "symbols": ["stringreftoken", "key_string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "key_string", "symbols": ["key_string$ebnf$1"], "postprocess": function (data, location, reject) { return joinTokens(data[0]).toLowerCase(); }},
+    {"name": "value_string$subexpression$1$ebnf$1", "symbols": []},
+    {"name": "value_string$subexpression$1$ebnf$1$subexpression$1", "symbols": ["_", pound, "_", "quoted_string_or_ref"]},
+    {"name": "value_string$subexpression$1$ebnf$1", "symbols": ["value_string$subexpression$1$ebnf$1$subexpression$1", "value_string$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "value_string$subexpression$1", "symbols": ["quoted_string_or_ref", "value_string$subexpression$1$ebnf$1"]},
+    {"name": "value_string$subexpression$1", "symbols": ["braced_string"]},
+    {"name": "value_string", "symbols": ["value_string$subexpression$1"], "postprocess":  function (data, location, reject) {
+            //console.log("DATA",JSON.stringify(data));
+            var match = data[0];
+            if(match.length == 2){
+             // quoted string
+             var tokenz = [];
+             tokenz.push(match[0]);
+             for(var i=0;i<match[1].length;i++) tokenz.push(match[1][i][3]);
+             return {type: 'quotedstringwrapper', data: tokenz};
+            } else if(match[0].type == 'braced')
+              return {type: 'bracedstringwrapper', data: match[0].data};
+            //else if(isNumber(match[0]) return [match[0]];
+            else throw new Error("Don't know how to handle value "+JSON.stringify(match[0]));
+        }
+                              },
+    {"name": "quoted_string_or_ref$subexpression$1", "symbols": ["quoted_string"]},
+    {"name": "quoted_string_or_ref$subexpression$1", "symbols": ["string_ref"]},
+    {"name": "quoted_string_or_ref$subexpression$1", "symbols": [num]},
+    {"name": "quoted_string_or_ref", "symbols": ["quoted_string_or_ref$subexpression$1"], "postprocess":  function (data, location, reject) {
+          //console.log(data);
+          if (data[0][0].type=='quotedstring') return data[0][0];
+          else{return data[0][0];}
+        }
+                                                             },
+    {"name": "string_ref$subexpression$1$ebnf$1", "symbols": []},
+    {"name": "string_ref$subexpression$1$ebnf$1", "symbols": ["stringreftoken", "string_ref$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "string_ref$subexpression$1", "symbols": ["stringreftoken_n_num", "string_ref$subexpression$1$ebnf$1"]},
+    {"name": "string_ref", "symbols": ["string_ref$subexpression$1"], "postprocess": function (data, location, reject) { var str = data[0][0]+joinTokens(data[0][1]); return {stringref: str}; }},
+    {"name": "stringreftoken$subexpression$1", "symbols": [esc]},
     {"name": "stringreftoken$subexpression$1", "symbols": [paren_l]},
     {"name": "stringreftoken$subexpression$1", "symbols": [paren_r]},
     {"name": "stringreftoken$subexpression$1", "symbols": [tok_id]},
@@ -224,6 +235,7 @@ export default {
     {"name": "stringreftoken$subexpression$1", "symbols": [entry_type_preamble]},
     {"name": "stringreftoken$subexpression$1", "symbols": [entry_type_comment]},
     {"name": "stringreftoken", "symbols": ["stringreftoken$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "stringreftoken_n_num$subexpression$1", "symbols": [esc]},
     {"name": "stringreftoken_n_num$subexpression$1", "symbols": [paren_l]},
     {"name": "stringreftoken_n_num$subexpression$1", "symbols": [paren_r]},
     {"name": "stringreftoken_n_num$subexpression$1", "symbols": [tok_id]},
@@ -232,17 +244,69 @@ export default {
     {"name": "stringreftoken_n_num$subexpression$1", "symbols": [entry_type_preamble]},
     {"name": "stringreftoken_n_num$subexpression$1", "symbols": [entry_type_comment]},
     {"name": "stringreftoken_n_num", "symbols": ["stringreftoken_n_num$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
-    {"name": "non_entry$subexpression$1", "symbols": [paren_l]},
-    {"name": "non_entry$subexpression$1", "symbols": [paren_r]},
-    {"name": "non_entry$subexpression$1", "symbols": [tok_id]},
-    {"name": "non_entry$subexpression$1", "symbols": [ws]},
-    {"name": "non_entry$subexpression$1", "symbols": [num]},
-    {"name": "non_entry$subexpression$1", "symbols": [comma]},
-    {"name": "non_entry$subexpression$1", "symbols": [eq]},
-    {"name": "non_entry$subexpression$1", "symbols": [brace_l]},
-    {"name": "non_entry$subexpression$1", "symbols": [brace_r]},
-    {"name": "non_entry$subexpression$1", "symbols": [pound]},
-    {"name": "non_entry", "symbols": ["non_entry$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}}
+    {"name": "non_brace$subexpression$1", "symbols": [esc]},
+    {"name": "non_brace$subexpression$1", "symbols": [paren_l]},
+    {"name": "non_brace$subexpression$1", "symbols": [paren_r]},
+    {"name": "non_brace$subexpression$1", "symbols": [tok_id]},
+    {"name": "non_brace$subexpression$1", "symbols": [quote_dbl]},
+    {"name": "non_brace$subexpression$1", "symbols": [ws]},
+    {"name": "non_brace$subexpression$1", "symbols": [num]},
+    {"name": "non_brace$subexpression$1", "symbols": [comma]},
+    {"name": "non_brace$subexpression$1", "symbols": [entry_type_bib]},
+    {"name": "non_brace$subexpression$1", "symbols": [entry_type_string]},
+    {"name": "non_brace$subexpression$1", "symbols": [entry_type_preamble]},
+    {"name": "non_brace$subexpression$1", "symbols": [entry_type_comment]},
+    {"name": "non_brace$subexpression$1", "symbols": [pound]},
+    {"name": "non_brace$subexpression$1", "symbols": [eq]},
+    {"name": "non_brace", "symbols": ["non_brace$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "non_bracket$subexpression$1", "symbols": [esc]},
+    {"name": "non_bracket$subexpression$1", "symbols": [tok_id]},
+    {"name": "non_bracket$subexpression$1", "symbols": [quote_dbl]},
+    {"name": "non_bracket$subexpression$1", "symbols": [ws]},
+    {"name": "non_bracket$subexpression$1", "symbols": [num]},
+    {"name": "non_bracket$subexpression$1", "symbols": [comma]},
+    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_bib]},
+    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_string]},
+    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_preamble]},
+    {"name": "non_bracket$subexpression$1", "symbols": [entry_type_comment]},
+    {"name": "non_bracket$subexpression$1", "symbols": [pound]},
+    {"name": "non_bracket$subexpression$1", "symbols": [eq]},
+    {"name": "non_bracket", "symbols": ["non_bracket$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_entry"]},
+    {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_escape"]},
+    {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_non_esc_outside_entry"]},
+    {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["non_esc_outside_entry"]},
+    {"name": "non_entry$ebnf$1", "symbols": ["non_entry$ebnf$1$subexpression$1"]},
+    {"name": "non_entry$ebnf$1$subexpression$2", "symbols": ["escaped_entry"]},
+    {"name": "non_entry$ebnf$1$subexpression$2", "symbols": ["escaped_escape"]},
+    {"name": "non_entry$ebnf$1$subexpression$2", "symbols": ["escaped_non_esc_outside_entry"]},
+    {"name": "non_entry$ebnf$1$subexpression$2", "symbols": ["non_esc_outside_entry"]},
+    {"name": "non_entry$ebnf$1", "symbols": ["non_entry$ebnf$1$subexpression$2", "non_entry$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "non_entry", "symbols": ["non_entry$ebnf$1"], "postprocess":  function (data, location, reject) {
+        //console.log("non_entry",data);
+        var tokens = [];
+        for(var Ti = 0;Ti<data[0].length;Ti++) tokens.push(data[0][Ti][0]);
+        return tokens;
+        }
+        },
+    {"name": "escaped_escape", "symbols": [esc, esc], "postprocess": function (data, location, reject) { return '\\'; }},
+    {"name": "escaped_entry", "symbols": [esc, "entry_decl"], "postprocess": function (data, location, reject) { return data[1]; }},
+    {"name": "escaped_non_esc_outside_entry", "symbols": [esc, "non_esc_outside_entry"], "postprocess": function (data, location, reject) { return '\\' + data[1]; }},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [tok_id]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [ws]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [num]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [pound]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [eq]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [paren_l]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [paren_r]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [brace_l]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [brace_r]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [quote_dbl]},
+    {"name": "non_esc_outside_entry$subexpression$1", "symbols": [comma]},
+    {"name": "non_esc_outside_entry", "symbols": ["non_esc_outside_entry$subexpression$1"], "postprocess":  function (data, location, reject) {
+          //console.log("ooutside_entry",data[0][0]);
+          return data[0][0];
+        } }
 ]
   , ParserStart: "main"
 }

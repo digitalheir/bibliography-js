@@ -1,7 +1,7 @@
 {
   "name": "bibliography",
   "description": "Library for parsing and rendering bibliographic entities (ie. convert to and from BibTex, AMA reference, etc)",
-  "version": "0.1.0",
+  "version": "0.9.0",
   "main": "lib/index.js",
   "author": "digitalheir",
   "repository": "digitalheir/bibliography",
@@ -13,7 +13,7 @@
     "test": "mocha --compilers js:babel-core/register"
   },
   "dependencies": {
-    "nearley": "latest",
+    "nearley": "2.6.0",
     "immutable": "3.8.1"
   },
   "devDependencies": {
