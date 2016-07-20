@@ -1,5 +1,3 @@
-// Generated automatically by nearley
-// http://github.com/Hardmath123/nearley
 function id(x) {return x[0]; }
 
 var isNumber = function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')};
@@ -45,8 +43,7 @@ function joinTokens(arr){
     }
     return strs.join('');
 }
-
-export default {
+export default{
     ParserRules: [
     {"name": "main$ebnf$1", "symbols": ["non_entry"], "postprocess": id},
     {"name": "main$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
@@ -163,7 +160,7 @@ export default {
                                                                                                         },
     {"name": "quoted_string$ebnf$1", "symbols": []},
     {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["escaped_quote"]},
-    {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["non_quote_dbl"]},
+    {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["non_quote_non_brace"]},
     {"name": "quoted_string$ebnf$1$subexpression$1", "symbols": ["braced_string"]},
     {"name": "quoted_string$ebnf$1", "symbols": ["quoted_string$ebnf$1$subexpression$1", "quoted_string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "quoted_string", "symbols": [quote_dbl, "quoted_string$ebnf$1", quote_dbl], "postprocess":  function (data, location, reject) {
@@ -173,22 +170,20 @@ export default {
         }
                                 },
     {"name": "escaped_quote", "symbols": [esc, quote_dbl]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [tok_id]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_bib]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_string]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_preamble]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [entry_type_comment]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [ws]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [num]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [pound]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [eq]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [esc]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_l]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [paren_r]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [brace_l]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [brace_r]},
-    {"name": "non_quote_dbl$subexpression$1", "symbols": [comma]},
-    {"name": "non_quote_dbl", "symbols": ["non_quote_dbl$subexpression$1"]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [tok_id]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [entry_type_bib]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [entry_type_string]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [entry_type_preamble]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [entry_type_comment]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [ws]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [num]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [pound]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [eq]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [esc]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [paren_l]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [paren_r]},
+    {"name": "non_quote_non_brace$subexpression$1", "symbols": [comma]},
+    {"name": "non_quote_non_brace", "symbols": ["non_quote_non_brace$subexpression$1"]},
     {"name": "key_string$ebnf$1", "symbols": ["stringreftoken"]},
     {"name": "key_string$ebnf$1", "symbols": ["stringreftoken", "key_string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "key_string", "symbols": ["key_string$ebnf$1"], "postprocess": function (data, location, reject) { return joinTokens(data[0]).toLowerCase(); }},
@@ -258,7 +253,10 @@ export default {
     {"name": "non_brace$subexpression$1", "symbols": [entry_type_comment]},
     {"name": "non_brace$subexpression$1", "symbols": [pound]},
     {"name": "non_brace$subexpression$1", "symbols": [eq]},
-    {"name": "non_brace", "symbols": ["non_brace$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "non_brace", "symbols": ["non_brace$subexpression$1"], "postprocess":  function (data, location, reject) {
+          return data[0][0];
+        }
+        },
     {"name": "non_bracket$subexpression$1", "symbols": [esc]},
     {"name": "non_bracket$subexpression$1", "symbols": [tok_id]},
     {"name": "non_bracket$subexpression$1", "symbols": [quote_dbl]},
@@ -271,7 +269,10 @@ export default {
     {"name": "non_bracket$subexpression$1", "symbols": [entry_type_comment]},
     {"name": "non_bracket$subexpression$1", "symbols": [pound]},
     {"name": "non_bracket$subexpression$1", "symbols": [eq]},
-    {"name": "non_bracket", "symbols": ["non_bracket$subexpression$1"], "postprocess": function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }}},
+    {"name": "non_bracket", "symbols": ["non_bracket$subexpression$1"], "postprocess":  function (data, location, reject) {
+          return data[0][0];
+        }
+        },
     {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_entry"]},
     {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_escape"]},
     {"name": "non_entry$ebnf$1$subexpression$1", "symbols": ["escaped_non_esc_outside_entry"]},

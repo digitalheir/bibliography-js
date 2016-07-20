@@ -15,49 +15,49 @@ describe('BiBTeX', () => {
     );
 
     //it('should resolve string references like we expect', function () {
-      //const stringVals = StringValue.resolveStrings(
-      //  {
-      //    "mittelbach": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{
-      //        "type": "quotedstring",
-      //        "data": [[[{"type": "id", "string": "Mittelbach"}]], [[","]], [[{
-      //          "type": "ws",
-      //          "string": " "
-      //        }]], [[{"type": "id", "string": "Franck"}]]]
-      //      }]
-      //    },
-      //    "acab": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{"stringref": "a"}, {"stringref": "_"}, {"stringref": "c"}, {"stringref": "_"}, {
-      //        "type": "quotedstring",
-      //        "data": [[[{"type": "id", "string": "are"}]]]
-      //      }, {"stringref": "_"}, {"stringref": "b"}]
-      //    },
-      //    "c": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{"type": "quotedstring", "data": [[[{"type": "id", "string": "co"}]]]}, {"stringref": "cc"}]
-      //    },
-      //    "a": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{
-      //        "type": "quotedstring",
-      //        "data": [[[{"type": "id", "string": "a"}]]]
-      //      }, {"stringref": "l"}, {"stringref": "l"}]
-      //    },
-      //    "_": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{"type": "quotedstring", "data": [[[{"type": "ws", "string": " "}]]]}]
-      //    },
-      //    "l": {"type": "bracedstringwrapper", "data": ["l"]},
-      //    "cc": {"type": "bracedstringwrapper", "data": ["mp", {"type": "braced", "data": ["\\", "\"", "u"]}, "ters"]},
-      //    "b": {
-      //      "type": "quotedstringwrapper",
-      //      "data": [{"type": "quotedstring", "data": [[[{"type": "id", "string": "beautifu"}]]]}, {"stringref": "l"}]
-      //    }
-      //  }
-      //);
-      //console.log(JSON.stringify(withoutRefs));
+    //const stringVals = StringValue.resolveStrings(
+    //  {
+    //    "mittelbach": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{
+    //        "type": "quotedstring",
+    //        "data": [[[{"type": "id", "string": "Mittelbach"}]], [[","]], [[{
+    //          "type": "ws",
+    //          "string": " "
+    //        }]], [[{"type": "id", "string": "Franck"}]]]
+    //      }]
+    //    },
+    //    "acab": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{"stringref": "a"}, {"stringref": "_"}, {"stringref": "c"}, {"stringref": "_"}, {
+    //        "type": "quotedstring",
+    //        "data": [[[{"type": "id", "string": "are"}]]]
+    //      }, {"stringref": "_"}, {"stringref": "b"}]
+    //    },
+    //    "c": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{"type": "quotedstring", "data": [[[{"type": "id", "string": "co"}]]]}, {"stringref": "cc"}]
+    //    },
+    //    "a": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{
+    //        "type": "quotedstring",
+    //        "data": [[[{"type": "id", "string": "a"}]]]
+    //      }, {"stringref": "l"}, {"stringref": "l"}]
+    //    },
+    //    "_": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{"type": "quotedstring", "data": [[[{"type": "ws", "string": " "}]]]}]
+    //    },
+    //    "l": {"type": "bracedstringwrapper", "data": ["l"]},
+    //    "cc": {"type": "bracedstringwrapper", "data": ["mp", {"type": "braced", "data": ["\\", "\"", "u"]}, "ters"]},
+    //    "b": {
+    //      "type": "quotedstringwrapper",
+    //      "data": [{"type": "quotedstring", "data": [[[{"type": "id", "string": "beautifu"}]]]}, {"stringref": "l"}]
+    //    }
+    //  }
+    //);
+    //console.log(JSON.stringify(withoutRefs));
     //});
 
     it('should lex', function () {
@@ -77,7 +77,7 @@ describe('BiBTeX', () => {
       var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
       p.feed(tokens);
       var res = p.results;
-      // for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
+       //for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
       assert.equal(res.length, 1);
       const parse = res[0];
       //console.log(JSON.stringify(parse))
@@ -88,12 +88,11 @@ describe('BiBTeX', () => {
       const trema = "\"";
       const lexer1 = new Lexer("leading comment" +
         "@   STRiNG   {  mittelbach = \"Mittelbach, Franck\"  }" +
-
         "@string{acab= a #_# c #_#\"are\" #_# b}" +
         "@string{c = \"co\"#cc}" +
         "@string{a = \"a\"#l#l}" +
-        "@string{_ = \" \"}" +
-        "@string{l = {l}}" +
+        "@string{_ = {{{{{ }}}}}}" +
+        "@string{l   =   {l}}    " +
         "@string{cc ={mp{\\" + trema + "u}ters}}" +
         "@string{b =  \"beautifu\"#l}"
       );
@@ -110,45 +109,40 @@ describe('BiBTeX', () => {
       assert.equal(parse.entries[0].data.key, "mittelbach");
 
       let bibliography = new Bibliography(parse);
-      console.log(JSON.stringify(bibliography.strings));
-      //assert.equal(bibliography.strings.acab, "all computers are beautiful");
+      assert.equal(bibliography.strings.acab.toUnicode(), "all compüters are beautiful");
     });
-    //it('should parse bib entries', function () {
-    //  let tokens = [];
-    //  const lexer1 = new Lexer(" @  STRiNG   {  mittelbach = \"Mittelbach, Franck\" }"+
-    //    "some comment " +
-    //    "@b00k"+
-    //        "{ companion  ," +
-    //  "    auTHor    = \"Goossens, Michel and \" # mittelbach # \" and Samarin, Alexander\",\n" +
-    //  "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
-    //  "publisher     = \"Addison-Wesley\",\n" +
-    //  "yeaR=1993 ," +
-    //  "    Title     = {{Bib}\\TeX}," +
-    //  "    title     = {{Bib}\\TeX}," +
-    //  "    Title2    = \"{Bib}\\TeX\"," +
-    //  "    Title3    = \"{Bib}\" # \"\\TeX\"" +
-    //  "}");
-    //  let nextToken;
-    //  while (nextToken = lexer1.readNextToken())  tokens.push(nextToken);
-    //  // for (var t = 0; t < tokens.length; t++) console.log(t, JSON.stringify(tokens[t]));
-    //  var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
-    //  p.feed(tokens);
-    //  var res = p.results;
-    //  //for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
-    //  assert.equal(res.length, 1);
-    //  const parse = res[0];
-    //  // for (var i = 0; i < parse.length; i++) console.log(i, JSON.stringify(parse[i]));
-    //  // console.log(JSON.stringify(res[0]))
-    //  assert.equal(parse[0], ' ');
-    //  assert.equal(parse[1].key, "mittelbach");
-    //  // assert.equal(parse[1].value[0], ["Mittelbach",","," ","Franck"]);
-    //  assert.equal(parse[1].value[0].data[3], "Franck");
-    //
-    //  let bibliography = new Bibliography(parse);
-    //  assert.equal(bibliography.strings.mittelbach, "Mittelbach, Franck");
-    //  assert.equal(bibliography.entries.companion.fields.author, "Goossens, Michel and Mittelbach, Franck and Samarin, Alexander");
-    //
-    //});
+    it('should parse bib entries', function () {
+      let tokens = [];
+      const lexer1 = new Lexer(" @  STRiNG   {  mittelbach = \"Mittelbach, Franck\" }" +
+        "some comment " +
+        "@b00k" +
+        "{ companion  ," +
+        "    auTHor    = \"Goossens, Michel and \" # mittelbach # \" and \"#\"Samarin, { {   A}}le\"#\"xander\",\n" +
+          "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
+          //"publisher     = \"Addison-Wesley\",\n" +
+          "yeaR=1993 ," +
+          //"    Title     = {{Bib}\\TeX}," +
+          //"    title     = {{Bib}\\TeX}," +
+          //"    Title2    = \"{Bib}\\TeX\"," +
+          //"    Title3    = \"{Bib}\" # \"\\TeX\"" +
+        "}");
+      let nextToken;
+      while (nextToken = lexer1.readNextToken())  tokens.push(nextToken);
+      for (var t = 0; t < tokens.length; t++) console.log(t, JSON.stringify(tokens[t]));
+      var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
+      p.feed(tokens);
+      var res = p.results;
+      //for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
+      assert.equal(res.length, 1);
+      const parse = res[0];
+      // for (var i = 0; i < parse.length; i++) console.log(i, JSON.stringify(parse[i]));
+      //console.log(JSON.stringify("PARSE", parse));
+
+      let bibliography = new Bibliography(parse);
+      //assert.equal(bibliography.strings.mittelbach.toUnicode(), "Mittelbach, Franck");
+      //assert.equal(bibliography.entries.companion.fields.author.toUnicode(), "Goossens, Michel and Mittelbach, Franck and Samarin, Alexander");
+
+    });
     //
     //it('should parse preamble entries', function () {
     //  let tokens = [];//todo

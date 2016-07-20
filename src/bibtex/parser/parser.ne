@@ -171,7 +171,7 @@ braced_string         ->  %brace_l (non_brace|braced_string):* %brace_r {% funct
                                                                                                   }
 
                                                                                                 %}
-quoted_string        -> %quote_dbl (escaped_quote|non_quote_dbl|braced_string):* %quote_dbl
+quoted_string        -> %quote_dbl (escaped_quote|non_quote_non_brace|braced_string):* %quote_dbl
                         {% function (data, location, reject) {
                              var tks = [];
                              for(var i in data[1]) tks.push(data[1][i][0]);
@@ -179,7 +179,7 @@ quoted_string        -> %quote_dbl (escaped_quote|non_quote_dbl|braced_string):*
                            }
                         %}
 escaped_quote        -> %esc %quote_dbl
-non_quote_dbl        -> (%tok_id |
+non_quote_non_brace  -> (%tok_id |
                         %entry_type_bib |
                         %entry_type_string |
                         %entry_type_preamble |
@@ -191,8 +191,6 @@ non_quote_dbl        -> (%tok_id |
                         %esc |
                         %paren_l |
                         %paren_r |
-                        %brace_l |
-                        %brace_r |
                         %comma)
 
 #
@@ -236,8 +234,16 @@ string_ref         -> (stringreftoken_n_num stringreftoken:*)
 # Non-white non-brace, non-comma
 stringreftoken       -> (%esc | %paren_l | %paren_r | %tok_id | %num  | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
 stringreftoken_n_num -> (%esc | %paren_l | %paren_r | %tok_id |         %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_brace            -> (%esc | %paren_l | %paren_r | %tok_id | %quote_dbl | %ws | %num | %comma | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
-non_bracket          -> (%esc |                       %tok_id | %quote_dbl | %ws | %num | %comma | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq) {% function (data, location, reject) { if(typeof data[0][0]=='object') {if(!data[0][0].string)throw new Error("Expected "+data[0]+"to have a 'string' field");return data[0][0].string;} else {if((!(typeof data[0][0] == 'string'||typeof data[0][0]=='number')))throw new Error("Expected "+data[0][0]+" to be a string");return data[0][0]; }} %}
+non_brace            -> (%esc | %paren_l | %paren_r | %tok_id | %quote_dbl | %ws | %num | %comma | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq)
+{% function (data, location, reject) {
+  return data[0][0];
+}
+%}
+non_bracket          -> (%esc |                       %tok_id | %quote_dbl | %ws | %num | %comma | %entry_type_bib | %entry_type_string | %entry_type_preamble | %entry_type_comment | %pound | %eq)
+{% function (data, location, reject) {
+  return data[0][0];
+}
+%}
 
 #####################
 # NON ENTRY

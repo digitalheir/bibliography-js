@@ -162,8 +162,6 @@ non_quote_dbl        -> (%tok_id |
                         %esc |
                         %paren_l |
                         %paren_r |
-                        %brace_l |
-                        %brace_r |
                         %comma)
 
 #

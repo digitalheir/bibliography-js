@@ -98,6 +98,37 @@ function circumflex(char) {
       return char + "\u0302"
   }
 }
+function dieresis(char) {
+  switch (char) {
+    case 'e':
+      return 'ë';
+    case 'y':
+      return 'ÿ';
+    case 'u':
+      return 'ü';
+    case 'i':
+      return 'ï';
+    case 'o':
+      return 'ö';
+    case 'a':
+      return 'ä';
+
+    case 'E':
+      return 'Ë';
+    case 'Y':
+      return 'Ÿ';
+    case 'U':
+      return 'Ü';
+    case 'I':
+      return 'Ï';
+    case 'O':
+      return 'Ö';
+    case 'A':
+      return 'Ä';
+    default:
+      return char + "\u0308"
+  }
+}
 function tilde(char) {
   switch (char) {
     case 'o':
@@ -155,20 +186,21 @@ function circledA(char) {
   } else throw new Error("I do not know how to modify the following string: " + char + ". " +
     "Change your BiBTeX file or submit a feature request.");
 }
+
 function slashed(char) {
   if (char == 'o') {
     return 'ø';
   } else throw new Error("I do not know how to modify the following string: " + char + ". " +
     "Change your BiBTeX file or submit a feature request.");
 }
-export default {
+const diacritics = {
   '`': graveAccent, //{o}	ò	grave accent
   "'": acuteAccent, // Acute accent
   '^': circumflex, //{o}	ô	circumflex
   '~': tilde, //{o}	õ	tilde
   '=': simpleModifier("\u0304"), //{o}	ō	macron accent (a bar over the letter)
   '.': simpleModifier("\u0307"), //{o}	ȯ	dot over the letter
-  '"': simpleModifier("\u0308"), //{o}	ö	umlaut, trema or dieresis
+  '"': dieresis, //{o}	ö	umlaut, trema or dieresis
   'H': simpleModifier("\u030B"), //{o}	ő	long Hungarian umlaut (double acute)
   'c': cedilla, //{c}	ç	cedilla
   'k': simpleModifier("\u0328"), //{a}	ą	ogonek
@@ -182,3 +214,19 @@ export default {
   'a': circledA,
   'o': slashed //	ø	slashed o (o with stroke)
 };
+const specialChars = {
+  'i': 'ı',
+  'j': 'ȷ',
+  'oe': 'œ',
+  'OE': 'Œ',
+  'ae': 'æ',
+  'AE': 'Æ',
+  'aa': 'å',
+  'AA': 'Å',
+  'o': 'ø',
+  'O': 'Ø',
+  'ss': 'ß',
+  'l': 'ł',
+  'L': 'Ł'
+};
+export {diacritics, specialChars};

@@ -1,8 +1,23 @@
 import Immutable, {Set} from 'immutable'
 import Entry from './Entry'
+import AuthorValue from './string_value/AuthorValue'
 import StringValue from './string_value/StringValue'
 
 const ID_STRINGS = /id|ws/;
+
+function replaceRefs(wrapper, stringMap) {
+  if (wrapper.type == 'quotedstringwrapper')  return {
+    type: wrapper.type,
+    data: wrapper.data.map(o=> {
+      if (o.stringref) {
+        if (!stringMap[o.stringref]) throw new Error("Could not find reference to " + o.stringref);
+        else return stringMap[o.stringref];
+      } else return o;
+    })
+  };
+  else if (wrapper.type == 'bracedstringwrapper') return wrapper;
+  else throw new Error("Expected sting wrapper instead of " + JSON.stringify(wrapper));
+}
 export default class Bibliography {
   /**
    * @param nearleyObject an array of parsed tokens
@@ -18,7 +33,8 @@ export default class Bibliography {
         switch (obj.type) {
           case 'string':
             let keyval = obj.data;
-            if (strings[keyval.key]) console.log("WARNING: string abbreviated with key " + keyval.key + " was already defined. Ignoring value " + keyval.value);
+            if (strings[keyval.key]) console.log("WARNING: string abbreviated with key " +
+              keyval.key + " was already defined. Ignoring value " + keyval.value);
             else strings[keyval.key] = keyval.value;
             break;
           case 'preamble':
@@ -54,14 +70,10 @@ export default class Bibliography {
     //console.log(JSON.stringify(strings));
 
     this.strings = StringValue.resolveStrings(strings);
-    //for (let kkey in withoutRefs) {
-    //  if (withoutRefs.hasOwnProperty(kkey))
-    //      strings[kkey] = new StringValue(withoutRefs[kkey]);
 
 
     this.rawEntries = rawEntries;
-    // todo loop over all raw entries, format them with the use of strings and preamble
-    //this.entries = Bibliography.compileEntries(rawEntries, this.strings);
+    this.entries = Bibliography.compileEntries(rawEntries, this.strings);
   }
 
   static joinStringTokens(arr) {
@@ -71,15 +83,18 @@ export default class Bibliography {
 
   static compileEntries(rawEntries, strings) {
     const entries = {};
-    //console.log(JSON.stringify(strings));
     rawEntries.forEach(object => {
       const fields = {};
       const rawFields = object.fields;
       for (let fieldName in rawFields) {
         if (rawFields.hasOwnProperty(fieldName)) {
           // Field name is already normalized (lowercased) as part of nearley postprocessing
-          //console.log(fieldName, JSON.stringify(rawFields[fieldName]));
-          fields[fieldName] = Bibliography.compileStringOuter(Set.of(), rawFields[fieldName], strings, {});
+          const strRaw = replaceRefs(rawFields[fieldName], strings);
+
+          if (fieldName == 'author') fields[fieldName] = new AuthorValue(strRaw);
+          else fields[fieldName] = new StringValue(strRaw);
+
+          //console.log(fieldName + ":", fields[fieldName]);
         }
       }
       entries[object._id] = new Entry(object._id, object['@type'], fields);
