@@ -127,7 +127,7 @@ export default class StringValue {
 
     this._raw = strRaw;
     this._normalizedRaw = processSpecialChars(toWords(concatStrings(flatten(this._raw))));
-    console.log("Computed",JSON.stringify(this._normalizedRaw));
+    //console.log("Computed",JSON.stringify(this._normalizedRaw));
 
     //todo for any value of _raw
     this._unicode = StringValue.computeUnicodeString(0, this._raw);

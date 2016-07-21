@@ -5,6 +5,7 @@ import grammar from '../../../src/bibtex/parser/parser';
 import nearley from 'nearley';
 import Bibliography from '../../../src/bibtex/Bibliography'
 //mocha --compilers js:babel-core/register
+import referenceFormats from  '../../../src/bibliography/ReferenceFormats'
 
 describe('BiBTeX', () => {
   const COMMENT_PART = "\n\n\nthisisallacommentof{}commentswitheverythingexceptan\", whichweca123nescapewitha";
@@ -117,7 +118,7 @@ describe('BiBTeX', () => {
         "some comment " +
         "@b00k" +
         "{ comp4nion  ," +
-        "    auTHor    = \"Goossens, jr, Mich{\\`e}l and \" # mittelbach # \" and \"#\"{ {   A}}le\"#\"xander de La Samarin \",\n" +
+        "    auTHor    = \"Goossens, jr, Mich{\\`e}l Frederik and \" # mittelbach # \" and \"#\"{ {   A}}le\"#\"xander de La Samarin \",\n" +
           "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
           //"publisher     = \"Addison-Wesley\",\n" +
           "yeaR=1993 ," +
@@ -140,11 +141,10 @@ describe('BiBTeX', () => {
 
       let bibliography = new Bibliography(parse);
       bibliography.entries.comp4nion.fields.author._authors.forEach((author)=>{
-      console.log(JSON.stringify(author));
       });
-      //assert.equal(bibliography.strings.mittelbach.toUnicode(), "Mittelbach, Franck");
-      //assert.equal(bibliography.entries.companion.fields.author.toUnicode(), "Goossens, Michel and Mittelbach, Franck and Samarin, Alexander");
-
+      assert.equal(bibliography.strings.mittelbach.toUnicode(), "Mittelbach, Franck");
+      assert.equal(bibliography.entries.comp4nion.fields.author._authors[0].toString(referenceFormats.AMA),
+        "Goossens MF Jr");
     });
     //
     //it('should parse preamble entries', function () {

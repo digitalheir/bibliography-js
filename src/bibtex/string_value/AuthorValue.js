@@ -1,6 +1,7 @@
 import {diacritics, specialChars} from './specialCharsHandlers'
 import StringValue from './StringValue'
 import PersonName from '../../bibliography/PersonName'
+import {startsWithLowerCase} from './utils'
 
 function isPartOfName(char) {
   return (char == ',' || char.match(/\s/));
@@ -54,30 +55,6 @@ function splitOnAnd(authorTokens) {
   }, [[]]);
 }
 
-function isDigitOrLowerCase(ch) {
-  return ch.match(/[0-9]/) || ch.toUpperCase() != ch;
-}
-function flattenToString(authorToken) {
-  if (typeof authorToken == 'string') return authorToken;
-  else if (authorToken.type == 'braced')  return flattenToString(authorToken.data);
-  else if (authorToken.type == 'ws') {
-    //console.log(authorToken)
-    return authorToken.string;
-  }
-  else if (authorToken.unicode)  return authorToken.unicode;
-  else if (authorToken.constructor == Array) return authorToken.map(flattenToString).join('');
-  else throw new Error("Could not flatten to string: " + JSON.stringify(authorToken));
-}
-const startsWithLowerCase = function (authorToken) {
-  if (typeof authorToken == 'string') {
-    if (authorToken.length > 1 && authorToken.charAt(0) == '/') return isDigitOrLowerCase(authorToken.charAt(1));
-    else if (authorToken.length > 0) return isDigitOrLowerCase(authorToken.charAt(0));
-    else return false;
-  } else if (authorToken.type == 'braced')  return startsWithLowerCase(authorToken.data);
-  else if (authorToken.unicode)  return startsWithLowerCase(authorToken.unicode);
-  else if (authorToken.constructor == Array) return startsWithLowerCase(flattenToString(authorToken).trim());
-  else throw new Error("Could not determine lowercase of " + JSON.stringify(authorToken));
-};
 
 function firstVonLast(authorTokens) {
   let vonStartInclusive = -1;
@@ -94,16 +71,15 @@ function firstVonLast(authorTokens) {
   if (vonStartInclusive > 0) firstNameEndExclusive = vonStartInclusive;
   else firstNameEndExclusive = authorTokens.length - 1;
 
-  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, vonStartInclusive, vonEndExclusive) : null;
-  const firstName = getSubStringAsNameString(authorTokens, 0, firstNameEndExclusive);
-  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, firstNameEndExclusive), authorTokens.length);
-  console.log("von", von)
+  const von = vonStartInclusive > 0 ? getSubStringAsArray(authorTokens, vonStartInclusive, vonEndExclusive) : [];
+  const firstName = getSubStringAsArray(authorTokens, 0, firstNameEndExclusive);
+  const lastName = getSubStringAsArray(authorTokens, Math.max(vonEndExclusive, firstNameEndExclusive), authorTokens.length);
 
   return new PersonName(
     firstName,
     von,
     lastName,
-    null
+    []
   );
 }
 
@@ -123,37 +99,25 @@ function vonLastFirst(authorTokens) {
       vonEndExclusive = i + 1;
     }
 
-  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, 0, vonEndExclusive) : null;
-  const firstName = getSubStringAsNameString(authorTokens, commaPos + 1, authorTokens.length);
-  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
+  const von = vonStartInclusive > 0 ? getSubStringAsArray(authorTokens, 0, vonEndExclusive) : [];
+  const firstName = getSubStringAsArray(authorTokens, commaPos + 1, authorTokens.length);
+  const lastName = getSubStringAsArray(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
 
   return new PersonName(
     firstName,
     von,
     lastName,
-    null
+    []
   );
 }
 
-function word2string(obj) {
-  if (typeof obj == 'string') return obj;
-  else if (obj.type == 'braced') return word2string(obj.data);
-  else if (obj.unicode) return obj.unicode;
-  else if (obj.string) return obj.string;
-  else if (obj.constructor == Array) return obj.map(word2string).join('');
-  else throw new Error("? " + JSON.stringify(obj));
-}
-function computeUnicodeStringOrNull(words) {
-  //TODO make class with toString method
-  return words.map(word2string).join(" ");
-}
-function getSubStringAsNameString(tokens, startIncl, endExcl) {
+
+function getSubStringAsArray(tokens, startIncl, endExcl) {
   let arr = [];
   for (let i = startIncl; i < endExcl; i++) {
-    //  console.log(startIncl, endExcl, i, tokens[i])
-    arr.push(tokens[i]);
+    if (!(tokens[i].constructor == Array && tokens[i].length == 0)) arr.push(tokens[i]);
   }
-  return computeUnicodeStringOrNull(arr);
+  return arr;
 }
 function vonLastJrFirst(authorTokens) {
   let commaPos = -1;
@@ -177,10 +141,10 @@ function vonLastJrFirst(authorTokens) {
       vonEndExclusive = i + 1;
     }
 
-  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, 0, vonEndExclusive) : null;
-  const firstName = getSubStringAsNameString(authorTokens, commaPos2 + 1, authorTokens.length);
-  const jr = getSubStringAsNameString(authorTokens, commaPos + 1, commaPos2);
-  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
+  const von = vonStartInclusive > 0 ? getSubStringAsArray(authorTokens, 0, vonEndExclusive) : [];
+  const firstName = getSubStringAsArray(authorTokens, commaPos2 + 1, authorTokens.length);
+  const jr = getSubStringAsArray(authorTokens, commaPos + 1, commaPos2);
+  const lastName = getSubStringAsArray(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
 
   return new PersonName(
     firstName,
