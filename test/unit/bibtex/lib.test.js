@@ -116,8 +116,8 @@ describe('BiBTeX', () => {
       const lexer1 = new Lexer(" @  STRiNG   {  mittelbach = \"Mittelbach, Franck\" }" +
         "some comment " +
         "@b00k" +
-        "{ companion  ," +
-        "    auTHor    = \"Goossens, Michel and \" # mittelbach # \" and \"#\"Samarin, { {   A}}le\"#\"xander\",\n" +
+        "{ comp4nion  ," +
+        "    auTHor    = \"Goossens, jr, Mich{\\`e}l and \" # mittelbach # \" and \"#\"{ {   A}}le\"#\"xander de La Samarin \",\n" +
           "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
           //"publisher     = \"Addison-Wesley\",\n" +
           "yeaR=1993 ," +
@@ -128,7 +128,7 @@ describe('BiBTeX', () => {
         "}");
       let nextToken;
       while (nextToken = lexer1.readNextToken())  tokens.push(nextToken);
-      for (var t = 0; t < tokens.length; t++) console.log(t, JSON.stringify(tokens[t]));
+      //for (var t = 0; t < tokens.length; t++) conslog(t, JSON.stringify(tokens[t]));
       var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
       p.feed(tokens);
       var res = p.results;
@@ -139,6 +139,9 @@ describe('BiBTeX', () => {
       //console.log(JSON.stringify("PARSE", parse));
 
       let bibliography = new Bibliography(parse);
+      bibliography.entries.comp4nion.fields.author._authors.forEach((author)=>{
+      console.log(JSON.stringify(author));
+      });
       //assert.equal(bibliography.strings.mittelbach.toUnicode(), "Mittelbach, Franck");
       //assert.equal(bibliography.entries.companion.fields.author.toUnicode(), "Goossens, Michel and Mittelbach, Franck and Samarin, Alexander");
 

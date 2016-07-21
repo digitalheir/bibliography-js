@@ -1,4 +1,6 @@
+import {diacritics, specialChars} from './specialCharsHandlers'
 import StringValue from './StringValue'
+import PersonName from '../../bibliography/PersonName'
 
 function isPartOfName(char) {
   return (char == ',' || char.match(/\s/));
@@ -24,89 +26,6 @@ function asAuthorToken(conc) {
   }
 }
 
-function flatten(obj) {
-  if (typeof obj == 'object' &&
-    (obj.type == 'quotedstring' ||
-    obj.type == 'quotedstringwrapper' ||
-    obj.type == 'bracedstringwrapper')
-  ) return flatten(obj.data);
-  else if (typeof obj == 'object' && obj.type == 'ws') return obj;
-  else if (obj._raw) return flatten(obj._raw);
-  else if (typeof obj == 'object' && obj.type == 'id') return obj.string;
-  else if (typeof obj == 'string') return obj;
-  else if (obj.constructor == Array) {
-    let tokens = [];
-    obj.forEach(o => {
-      const conc = flatten(o);
-      //console.log(JSON.stringify(o));
-      //console.log(JSON.stringify(conc));
-      if (conc.constructor == Array)  tokens = tokens.concat(conc);
-      else tokens.push(conc);
-    });
-    return tokens;
-    //return tokens.reduce((prev, curr) => {
-    //  const previousToken = prev[prev.length - 1];
-    //  if (typeof previousToken == 'string' && typeof curr == 'string')
-    //    prev[prev.length - 1] = prev[prev.length - 1] + curr;
-    //  else prev.push(curr);
-    //  return prev;
-    //}, []).map(o => asAuthorToken(o));
-  } else if (obj.type == 'braced') {
-    const braced = obj.type == 'braced';
-    return ({
-      type: 'braced',
-      data: flatten(obj.data)
-    });
-  }
-  else throw new Error("Could not handle string value to normalize: " + JSON.stringify(obj));
-}
-
-function toWords(obj) {
-  let words = [[]];
-
-  if (typeof obj == 'object' &&
-    (obj.type == 'quotedstring' ||
-    obj.type == 'quotedstringwrapper' ||
-    obj.type == 'bracedstringwrapper')
-  ) words[words.size - 1].concat(toWords(obj.data));
-  else if (typeof obj == 'object' && obj.type == 'ws') return obj;
-  else if (typeof obj == 'string') return [obj];
-  else if (obj.constructor == Array) {
-    let tokens = [];
-    obj.forEach(o => {
-      const conc = toWords(o);
-      if (conc.constructor == Array)  tokens = tokens.concat(conc);
-      else tokens.push(conc);
-    });
-    return tokens.reduce((prev, curr) => {
-      const previousToken = prev[prev.length - 1];
-      if (typeof previousToken == 'string' && typeof curr == 'string')
-        prev[prev.length - 1] = prev[prev.length - 1] + curr;
-      else prev.push(curr);
-      return prev;
-    }, []).map(o => asAuthorToken(o));
-  } else if (obj.type == 'braced') {
-    const braced = obj.type == 'braced';
-    words[words.size - 1].push({
-      type: 'braced',
-      data: toWords(obj.data)
-    });
-  }
-  else throw new Error("! Could not handle string value to normalize: " + JSON.stringify(obj), (typeof obj == 'object' && obj.type == 'id'));
-
-
-  //
-  return words;
-}
-//function toWord(obj) {
-//  else if (typeof obj == 'object' && obj.type == 'id') return obj.string;
-//  else if (obj._raw) return toWords(obj._raw);
-//  else if (typeof obj == 'object' &&
-//    (obj.type == 'quotedstring' ||
-//    obj.type == 'quotedstringwrapper' ||
-//    obj.type == 'bracedstringwrapper')
-//  ) return toWords(obj.data);
-//}
 function processNames(wrapper) {
   //const tokens = [];
   //for (let i = 0; i < sstring.length; i++) {
@@ -126,17 +45,151 @@ function processNames(wrapper) {
   //grammar.feed(tokens);
 }
 
-function splitOnAndToken(authorTokens) {
+function splitOnAnd(authorTokens) {
   return authorTokens.reduce((prev, curr)=> {
-    if (curr.length == 1 && typeof curr[0] == 'object' && curr[0].type == 'and') prev.push([]);
+    //console.log(curr);
+    if (curr.length == 1 && curr[0] == 'and') prev.push([]);
     else prev[prev.length - 1].push(curr);
     return prev;
   }, [[]]);
 }
 
-function firstVonLast(authorTokens) {
-  authorTokens[authorTokens.length - 1];
+function isDigitOrLowerCase(ch) {
+  return ch.match(/[0-9]/) || ch.toUpperCase() != ch;
 }
+function flattenToString(authorToken) {
+  if (typeof authorToken == 'string') return authorToken;
+  else if (authorToken.type == 'braced')  return flattenToString(authorToken.data);
+  else if (authorToken.type == 'ws') {
+    //console.log(authorToken)
+    return authorToken.string;
+  }
+  else if (authorToken.unicode)  return authorToken.unicode;
+  else if (authorToken.constructor == Array) return authorToken.map(flattenToString).join('');
+  else throw new Error("Could not flatten to string: " + JSON.stringify(authorToken));
+}
+const startsWithLowerCase = function (authorToken) {
+  if (typeof authorToken == 'string') {
+    if (authorToken.length > 1 && authorToken.charAt(0) == '/') return isDigitOrLowerCase(authorToken.charAt(1));
+    else if (authorToken.length > 0) return isDigitOrLowerCase(authorToken.charAt(0));
+    else return false;
+  } else if (authorToken.type == 'braced')  return startsWithLowerCase(authorToken.data);
+  else if (authorToken.unicode)  return startsWithLowerCase(authorToken.unicode);
+  else if (authorToken.constructor == Array) return startsWithLowerCase(flattenToString(authorToken).trim());
+  else throw new Error("Could not determine lowercase of " + JSON.stringify(authorToken));
+};
+
+function firstVonLast(authorTokens) {
+  let vonStartInclusive = -1;
+  let vonEndExclusive = -1;
+  let firstNameEndExclusive = -1;
+  for (let i = 0; i < authorTokens.length - 1; i++) {// -1 because last word must be lastName
+    //console.log("STARLOW", (authorTokens[i]));
+    //console.log("STARLOW", startsWithLowerCase(authorTokens[i]));
+    if (startsWithLowerCase(authorTokens[i])) {
+      if (vonStartInclusive < 0) vonStartInclusive = i;
+      vonEndExclusive = i + 1;
+    }
+  }
+  if (vonStartInclusive > 0) firstNameEndExclusive = vonStartInclusive;
+  else firstNameEndExclusive = authorTokens.length - 1;
+
+  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, vonStartInclusive, vonEndExclusive) : null;
+  const firstName = getSubStringAsNameString(authorTokens, 0, firstNameEndExclusive);
+  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, firstNameEndExclusive), authorTokens.length);
+  console.log("von", von)
+
+  return new PersonName(
+    firstName,
+    von,
+    lastName,
+    null
+  );
+}
+
+function vonLastFirst(authorTokens) {
+  let commaPos = -1;
+  for (let i = 0; i < authorTokens.length; i++)
+    if (authorTokens[i].type == ',') {
+      commaPos = i;
+      break;
+    }
+  let vonStartInclusive = -1;
+  let vonEndExclusive = -1;
+
+  for (let i = 0; i < commaPos; i++)
+    if (startsWithLowerCase(authorTokens[i])) {
+      if (vonStartInclusive < 0) vonStartInclusive = i;
+      vonEndExclusive = i + 1;
+    }
+
+  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, 0, vonEndExclusive) : null;
+  const firstName = getSubStringAsNameString(authorTokens, commaPos + 1, authorTokens.length);
+  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
+
+  return new PersonName(
+    firstName,
+    von,
+    lastName,
+    null
+  );
+}
+
+function word2string(obj) {
+  if (typeof obj == 'string') return obj;
+  else if (obj.type == 'braced') return word2string(obj.data);
+  else if (obj.unicode) return obj.unicode;
+  else if (obj.string) return obj.string;
+  else if (obj.constructor == Array) return obj.map(word2string).join('');
+  else throw new Error("? " + JSON.stringify(obj));
+}
+function computeUnicodeStringOrNull(words) {
+  //TODO make class with toString method
+  return words.map(word2string).join(" ");
+}
+function getSubStringAsNameString(tokens, startIncl, endExcl) {
+  let arr = [];
+  for (let i = startIncl; i < endExcl; i++) {
+    //  console.log(startIncl, endExcl, i, tokens[i])
+    arr.push(tokens[i]);
+  }
+  return computeUnicodeStringOrNull(arr);
+}
+function vonLastJrFirst(authorTokens) {
+  let commaPos = -1;
+  for (let i = 0; i < authorTokens.length; i++)
+    if (authorTokens[i].type == ',') {
+      commaPos = i;
+      break;
+    }
+  let commaPos2 = -1;
+  for (let i = commaPos + 1; i < authorTokens.length; i++)
+    if (authorTokens[i].type == ',') {
+      commaPos2 = i;
+      break;
+    }
+  let vonStartInclusive = -1;
+  let vonEndExclusive = -1;
+
+  for (let i = 0; i < commaPos; i++)
+    if (startsWithLowerCase(authorTokens[i])) {
+      if (vonStartInclusive < 0) vonStartInclusive = i;
+      vonEndExclusive = i + 1;
+    }
+
+  const von = vonStartInclusive > 0 ? getSubStringAsNameString(authorTokens, 0, vonEndExclusive) : null;
+  const firstName = getSubStringAsNameString(authorTokens, commaPos2 + 1, authorTokens.length);
+  const jr = getSubStringAsNameString(authorTokens, commaPos + 1, commaPos2);
+  const lastName = getSubStringAsNameString(authorTokens, Math.max(vonEndExclusive, 0), commaPos);
+
+  return new PersonName(
+    firstName,
+    von,
+    lastName,
+    jr
+  );
+}
+
 /**
  * BibTEX must be able to distinguish between the different parts of the author field. To that
  * aim, BibTEX recognizes three possible formats:
@@ -146,28 +199,29 @@ function firstVonLast(authorTokens) {
  *
  * The format to be considered is obtained by counting the number of commas in the name. Here are
  * the characteristics of these formats:
- * @param authorTokens
+ * @param authorRaw
  */
-function parseName(authorTokens) {
-  const commaCount = authorTokens.reduce((prev, cur)=>prev + cur.type == ',' ? 1 : 0, 0);
+function parseAuthor(authorRaw) {
+  const commaCount = authorRaw.reduce((prev, cur)=> {
+      return prev + (cur.type == ',' ? 1 : 0)
+    }, 0
+  );
+  //console.log(commaCount,JSON.stringify(authorRaw));
   switch (commaCount) {
     case 0:
-      return firstVonLast(authorTokens);
+      return firstVonLast(authorRaw);
     case 1:
-      return vonLastFirst(authorTokens);
+      return vonLastFirst(authorRaw);
     case 2:
-      return vonLastJrFirst(authorTokens);
+      return vonLastJrFirst(authorRaw);
     default:
-      throw new Error("Could not parse author name: found " + commaCount + " commas in " + JSON.stringify(authorTokens));
+      throw new Error("Could not parse author name: found " + commaCount + " commas in " + JSON.stringify(authorRaw));
   }
 }
-
-
 export default class AuthorValue extends StringValue {
   constructor(raw) {
     super(raw);
-    const authors = flatten(this._raw);
-    console.log(JSON.stringify(authors));
-    this._authors = authors;
+    const authors = splitOnAnd(this._normalizedRaw);
+    this._authors = authors.map(parseAuthor);
   }
 }
