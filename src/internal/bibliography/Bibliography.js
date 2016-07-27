@@ -1,7 +1,10 @@
 import Immutable, {Set} from 'immutable'
-import Entry from './Entry'
-import AuthorValue from './string_value/AuthorValue'
-import StringValue from './string_value/StringValue'
+import Entry from '../bibtex/Entry'
+import AuthorValue from '../bibtex/field_value/AuthorValue'
+import PageRange from '../bibtex/field_value/PageRange'
+import StringValue from '../bibtex/field_value/StringValue'
+import moment from 'moment'
+import {flattenToString} from '../bibtex/field_value/utils'
 
 const ID_STRINGS = /id|ws/;
 
@@ -92,6 +95,8 @@ export default class Bibliography {
           const strRaw = replaceRefs(rawFields[fieldName], strings);
 
           if (fieldName == 'author') fields[fieldName] = new AuthorValue(strRaw);
+          else if (fieldName == 'pages') fields[fieldName] = new PageRange(strRaw);
+          else if (fieldName == 'urldate') fields[fieldName] = moment(new StringValue(strRaw).toUnicode());
           else fields[fieldName] = new StringValue(strRaw);
 
           //console.log(fieldName + ":", fields[fieldName]);
@@ -99,6 +104,20 @@ export default class Bibliography {
       }
       entries[object._id] = new Entry(object._id, object['@type'], fields);
     });
+
+    // Resolve cross references
+    for (let key in entries) {
+      if (entries.hasOwnProperty(key)) {
+        const extensionEntry = entries[key];
+        if (extensionEntry.fields.crossref) {
+          const referencedEntry = entries[extensionEntry.fields.crossref];
+          if (!referencedEntry) throw new Error("Could not find referenced entry with id " + extensionEntry.fields.crossref + " (crossref occured in entry " + key);
+          for (let field in referencedEntry.fields)
+            if (referencedEntry.fields.hasOwnProperty(field) && !extensionEntry.fields.hasOwnProperty(field))
+              extensionEntry.fields[field] = referencedEntry.fields[field];
+        }
+      }
+    }
     return entries;
   }
 }

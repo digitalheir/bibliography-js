@@ -1,14 +1,46 @@
+import React, {PropTypes, Component} from 'react';
 import {assert, expect} from 'chai';
-import Lexer from '../../../src/bibtex/lexer/lexer';
-import StringValue from '../../../src/bibtex/string_value/StringValue';
-import grammar from '../../../src/bibtex/parser/parser';
+import Lexer from '../../../src/internal/bibtex/lexer/lexer';
+import StringValue from '../../../src/internal/bibtex/field_value/StringValue';
+import grammar from '../../../src/internal/bibtex/parser/parser';
 import nearley from 'nearley';
-import Bibliography from '../../../src/bibtex/Bibliography'
+import Bibliography from '../../../src/internal/bibliography/Bibliography'
 //mocha --compilers js:babel-core/register
-import referenceFormats from  '../../../src/bibliography/ReferenceFormats'
+import referenceFormats from  '../../../src/internal/bibliography/ReferenceFormats'
+import {parseString} from  '../../../src/internal/bibtex/bibtex'
+import ReactDOMServer  from 'react-dom/server'
+import Entry from '../../../src/internal/reference/AMA/Reference';
 
 describe('BiBTeX', () => {
+  describe('AMA', () => {
+    it('should render a @article', function () {
+      // @article
+      //  Required:         author, title, journal, year.
+      //  Optional fields:  volume, number, pages, month, note.
+      const bib_article = "@article{navarro2008molecular,\n"
+        + "title={Molecular coupling of Xist regulation and pluripotency},\n"
+        + "author={Navarro, Pablo and Chambers, Ian and Karwacki-Neisius, Violetta and Chureau, Corinne and Morey, C{\'e}line and Rougeulle, Claire and Avner, Philip},\n"
+        + "journal={Science},\n"
+        + "volume={321},\n"
+        + "number={5896},\n"
+        + "pages={1693--1695},\n"
+        + "year={2008},\n"
+        + "url={http://www.sciencemag.org/cgi/content/full/321/5896/1693},\n"
+        + "urldate={2009-06-04},\n"
+        + "publisher={American Association for the Advancement of Science}\n"
+        + "}";
+      const bibliography = parseString(bib_article);
+
+      const markup = ReactDOMServer.renderToStaticMarkup(<Entry entry={bibliography.entries['navarro2008molecular']}/>);
+      //console.log(markup);
+      assert(markup.length > 35);
+    });
+  });
+
+
   const COMMENT_PART = "\n\n\nthisisallacommentof{}commentswitheverythingexceptan\", whichweca123nescapewitha";
+
+  //TODO test crossref
   describe('lexer', () => {
     let tokens = [];
     const lexer1 = new Lexer(COMMENT_PART +
@@ -78,7 +110,7 @@ describe('BiBTeX', () => {
       var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
       p.feed(tokens);
       var res = p.results;
-       //for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
+      //for (var i = 0; i < res.length; i++) console.log(i, JSON.stringify(res[i]));
       assert.equal(res.length, 1);
       const parse = res[0];
       //console.log(JSON.stringify(parse))
@@ -119,9 +151,9 @@ describe('BiBTeX', () => {
         "@b00k" +
         "{ comp4nion  ," +
         "    auTHor    = \"Goossens, jr, Mich{\\`e}l Frederik and \" # mittelbach # \" and \"#\"{ {   A}}le\"#\"xander de La Samarin \",\n" +
-          "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
+        "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
           //"publisher     = \"Addison-Wesley\",\n" +
-          "yeaR=1993 ," +
+        "yeaR=1993 ," +
           //"    Title     = {{Bib}\\TeX}," +
           //"    title     = {{Bib}\\TeX}," +
           //"    Title2    = \"{Bib}\\TeX\"," +
@@ -140,13 +172,10 @@ describe('BiBTeX', () => {
       //console.log(JSON.stringify("PARSE", parse));
 
       let bibliography = new Bibliography(parse);
-      bibliography.entries.comp4nion.fields.author._authors.forEach((author)=>{
+      bibliography.entries.comp4nion.fields.author._authors.forEach((author)=> {
       });
       assert.equal(bibliography.strings.mittelbach.toUnicode(), "Mittelbach, Franck");
-      assert.equal(bibliography.entries.comp4nion.fields.author._authors[0].toString(referenceFormats.AMA),
-        "Goossens MF Jr");
     });
-    //
     //it('should parse preamble entries', function () {
     //  let tokens = [];//todo
     //  const lexer1 = new Lexer("@preamble"+

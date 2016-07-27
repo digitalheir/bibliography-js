@@ -7,45 +7,6 @@ function isPartOfName(char) {
   return (char == ',' || char.match(/\s/));
 }
 
-function isLowerCaseChar(ch) {
-  return ch.charAt(0).toUpperCase() != ch.charAt(0);
-}
-function asAuthorToken(conc) {
-  //console.log("c,",conc)
-  if (conc.type == 'id' || conc.type == ',' || conc.type == 'and') return conc;
-  if (typeof conc != 'string')throw new Error("Did not expect " + JSON.stringify(conc));
-  switch (conc) {
-    case ",":
-    case "and":
-      return {type: conc};
-    default:
-      return {
-        type: 'id',
-        startsWithLowerCase: isLowerCaseChar(conc) || (conc.charAt(0) == '/' && isLowerCaseChar(conc.charAt(1))),
-        string: 'conc'
-      };
-  }
-}
-
-function processNames(wrapper) {
-  //const tokens = [];
-  //for (let i = 0; i < sstring.length; i++) {
-  //  if (isPartOfName(sstring.getCharAt(i))) {
-  //    const letters = [sstring.getCharAt(i)];
-  //    while (i < sstring.length && isPartOfName(sstring.getCharAt(i + 1))) {
-  //      letters.push(sstring.getCharAt(i + 1));
-  //      i++;
-  //    }
-  //    tokens.push({type: 'id', data: letters.join('')});
-  //  } else if (sstring.charAt(i) == ',') tokens.push({type: 'comma'});
-  //  else if (sstring.charAt(i).match(/\s/)) {
-  //    // Ignore whitespace
-  //  } else throw new Error("?");
-  //}
-  //wrapper.data
-  //grammar.feed(tokens);
-}
-
 function splitOnAnd(authorTokens) {
   return authorTokens.reduce((prev, curr)=> {
     //console.log(curr);
@@ -187,5 +148,9 @@ export default class AuthorValue extends StringValue {
     super(raw);
     const authors = splitOnAnd(this._normalizedRaw);
     this._authors = authors.map(parseAuthor);
+  }
+
+  getAuthors() {
+    return this._authors;
   }
 }
