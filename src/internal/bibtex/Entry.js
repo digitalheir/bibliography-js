@@ -2,10 +2,10 @@ import {mandatoryFields, optionalFields} from './utils'
 import referenceTypes from '../bibliography/ReferenceFormats'
 
 function checkMandatoryFields(id, type, fields) {
-  const mandatoryFields = mandatoryFields[type] || [];
+  const mandatory = mandatoryFields[type] || [];
   //const optionalFields = optionalFields[type] || [];
 
-  mandatoryFields.forEach(field => {
+  mandatory.forEach(field => {
     if (typeof field == 'string') {
       if (!fields[field]) console.warn("Warning: expected " + type + " with id " + id
         + " to have the field: " + field);
