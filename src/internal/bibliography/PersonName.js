@@ -1,11 +1,6 @@
 import referenceFormats from './ReferenceFormats'
 import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../bibtex/field_value/utils'
 
-function computeUnicodeStringOrNull(words) {
-  //TODO make class with toString method
-  return words.map(word2string).join(" ");
-}
-
 function word2string(obj) {
   if (typeof obj == 'string') return obj;
   else if (obj.type == 'braced') return word2string(obj.data);
