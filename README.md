@@ -1,10 +1,10 @@
 # bibliography
 
-![Build Status](https://img.shields.io/travis/digitalheir/bibliography.svg)
-![Coverage](https://img.shields.io/coveralls/digitalheir/bibliography.svg)
+![Build Status](https://img.shields.io/travis/digitalheir/bibliography-js.svg)
+![Coverage](https://img.shields.io/coveralls/digitalheir/bibliography-js.svg)
 ![npm version](https://img.shields.io/npm/v/bibliography.svg)
-![dependencies](https://img.shields.io/david/digitalheir/bibliography.svg)
-![dev dependencies](https://img.shields.io/david/dev/digitalheir/bibliography.svg)
+![dependencies](https://david-dm.org/digitalheir/bibliography-js.svg)
+![dev dependencies](https://img.shields.io/david/dev/digitalheir/bibliography-js.svg)
 ![License](https://img.shields.io/npm/l/bibliography.svg)
 
 Library for parsing and rendering bibliographic entities.
