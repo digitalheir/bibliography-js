@@ -15,7 +15,7 @@ is automatically converted to `ö`), but general LaTeX commands are currently no
 
 ## Getting Started
 
-Install it via npm:
+Install it via [npm](https://www.npmjs.com/package/bibliography):
 
 ```shell
 npm install bibliography
