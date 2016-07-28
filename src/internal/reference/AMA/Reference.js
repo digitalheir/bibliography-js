@@ -2,7 +2,7 @@ import React, {PropTypes, Component} from 'react';
 
 import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../../bibtex/field_value/utils'
 import Entry from '../../bibtex/Entry'
-import LastName from './LastName'
+import LastName from '../LastName'
 import PersonName from '../../bibliography/PersonName'
 import AuthorValue from '../../bibtex/field_value/AuthorValue'
 import StringValue from '../../bibtex/field_value/StringValue'
@@ -54,7 +54,7 @@ function renderPages(pages) {
   if (!(pages instanceof PageRange)) throw new Error("Expected object to be instance of PageRange");
   return <span className="_bib_pages" key="pages">
       <span itemProp="pageStart">{pages.start}</span>
-    {pages.end ? '–' : ''}
+    {pages.end ? '-' : ''}
     {pages.end ? <span itemProp="pageEnd">{pages.end}</span> : ''}
       </span>;
 }
@@ -188,7 +188,7 @@ class Reference extends Component {
     }
 
     const props = {
-      className: "_bib_citation _bib_" + obj.type,
+      className: "_bib_citation _bib_ama _bib_" + obj.type,
       id: obj.id,
       itemScope: true,
       itemType: "https://schema.org/CreativeWork"

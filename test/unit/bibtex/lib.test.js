@@ -10,30 +10,49 @@ import referenceFormats from  '../../../src/internal/bibliography/ReferenceForma
 import {parseString} from  '../../../src/internal/bibtex/bibtex'
 import ReactDOMServer  from 'react-dom/server'
 import Entry from '../../../src/internal/reference/AMA/Reference';
+import MLA from '../../../src/internal/reference/MLA/Parenthetical';
 
 describe('BiBTeX', () => {
+  // @article
+  //  Required:         author, title, journal, year.
+  //  Optional fields:  volume, number, pages, month, note.
+  const bib_article = "@article{navarro2008molecular,\n"
+    + "title={Molecular coupling of Xist regulation and pluripotency},\n"
+    + "author={Navarro, Pablo and Chambers, Ian and Karwacki-Neisius, Violetta and Chureau, Corinne and Morey, C{\'e}line and Rougeulle, Claire and Avner, Philip},\n"
+    + "journal={Science},\n"
+    + "volume={321},\n"
+    + "number={5896},\n"
+    + "pages={1693--1695},\n"
+    + "year={2008},\n"
+    + "url={http://www.sciencemag.org/cgi/content/full/321/5896/1693},\n"
+    + "urldate={2009-06-04},\n"
+    + "publisher={American Association for the Advancement of Science}\n"
+    + "}";
+  describe('MLA', () => {
+    const bibliography = parseString(bib_article);
+
+    const markup = ReactDOMServer.renderToStaticMarkup(
+      <MLA entry={bibliography.entries['navarro2008molecular']}/>
+    );
+    //console.log(markup);
+    const str = markup.toString().replace(/<[^>]+>/g, "").trim().toString();
+
+    // console.log("(Navarro et al. 1693-1695)"==str);
+    assert.equal(str, "(Navarro et al. 1693-1695)");
+  });
   describe('AMA', () => {
     it('should render a @article', function () {
-      // @article
-      //  Required:         author, title, journal, year.
-      //  Optional fields:  volume, number, pages, month, note.
-      const bib_article = "@article{navarro2008molecular,\n"
-        + "title={Molecular coupling of Xist regulation and pluripotency},\n"
-        + "author={Navarro, Pablo and Chambers, Ian and Karwacki-Neisius, Violetta and Chureau, Corinne and Morey, C{\'e}line and Rougeulle, Claire and Avner, Philip},\n"
-        + "journal={Science},\n"
-        + "volume={321},\n"
-        + "number={5896},\n"
-        + "pages={1693--1695},\n"
-        + "year={2008},\n"
-        + "url={http://www.sciencemag.org/cgi/content/full/321/5896/1693},\n"
-        + "urldate={2009-06-04},\n"
-        + "publisher={American Association for the Advancement of Science}\n"
-        + "}";
       const bibliography = parseString(bib_article);
 
-      const markup = ReactDOMServer.renderToStaticMarkup(<Entry entry={bibliography.entries['navarro2008molecular']}/>);
-      //console.log(markup);
-      assert(markup.length > 35);
+      const markup = ReactDOMServer.renderToStaticMarkup(
+        <Entry entry={bibliography.entries['navarro2008molecular']}/>
+      );
+      //console.log(markup.replace(/<[^>]+>/g, ''));
+      assert(markup.replace(/<[^>]+>/g, ''),
+        "Navarro P, Chambers I, Karwacki-Neisius V, et al. " +
+        "Molecular coupling of Xist regulation and pluripotency. " +
+        "Science. 2008;(321):1693-1695. " +
+        "http://www.sciencemag.org/cgi/content/full/321/5896/1693. Accessed June 4, 2009.");
     });
   });
 
@@ -152,12 +171,12 @@ describe('BiBTeX', () => {
         "{ comp4nion  ," +
         "    auTHor    = \"Goossens, jr, Mich{\\`e}l Frederik and \" # mittelbach # \" and \"#\"{ {   A}}le\"#\"xander de La Samarin \",\n" +
         "    titLe     = \"The {{\\LaTeX}} {C}{\\\"o}mp{\\\"a}nion\"," +
-          //"publisher     = \"Addison-Wesley\",\n" +
+        //"publisher     = \"Addison-Wesley\",\n" +
         "yeaR=1993 ," +
-          //"    Title     = {{Bib}\\TeX}," +
-          //"    title     = {{Bib}\\TeX}," +
-          //"    Title2    = \"{Bib}\\TeX\"," +
-          //"    Title3    = \"{Bib}\" # \"\\TeX\"" +
+        //"    Title     = {{Bib}\\TeX}," +
+        //"    title     = {{Bib}\\TeX}," +
+        //"    Title2    = \"{Bib}\\TeX\"," +
+        //"    Title3    = \"{Bib}\" # \"\\TeX\"" +
         "}");
       let nextToken;
       while (nextToken = lexer1.readNextToken())  tokens.push(nextToken);

@@ -23,5 +23,6 @@ export default class PersonName {
     this.vons = vons.map(flattenToString);
     this.lastNames = lastNames.map(flattenToString);
     this.jrs = jrs.map(flattenToString);
+    this.id = this.firstNames.join('-') + '-' + this.vons.join('-') + '-' + this.lastNames.join('-') + '-' + this.jrs.join('-');
   }
 }
