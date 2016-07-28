@@ -6,6 +6,7 @@
 ![dependencies](https://david-dm.org/digitalheir/bibliography-js.svg)
 ![dev dependencies](https://img.shields.io/david/dev/digitalheir/bibliography-js.svg)
 ![License](https://img.shields.io/npm/l/bibliography.svg)
+[![Code Climate](https://codeclimate.com/github/digitalheir/bibliography-js/badges/gpa.svg)](https://codeclimate.com/github/digitalheir/bibliography-js)
 
 Library for parsing and rendering bibliographic entities.
 

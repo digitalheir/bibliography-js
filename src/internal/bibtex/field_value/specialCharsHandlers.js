@@ -3,179 +3,104 @@ const simpleModifier = function (modifier) {
     return char + modifier;
   }
 };
-const barredLetter = function (char) {
-  switch (char) {
-    case 'l':
-      return "ł";
-    case 'L':
-      return "Ł";
-    default:
-      throw new Error("I do not know how to modify the following string: " + char + ". " +
-        "Change your BiBTeX file or submit a feature request.");
-  }
-};
-const graveAccent = function (char) {
-  switch (char) {
-    case 'e':
-      return 'è';
-    case 'u':
-      return 'ù';
-    case 'i':
-      return 'ì';
-    case 'o':
-      return 'ò';
-    case 'a':
-      return 'à';
-    case 'E':
-      return 'È';
-    case 'U':
-      return 'Ù';
-    case 'I':
-      return 'Ì';
-    case 'O':
-      return 'Ò';
-    case 'A':
-      return 'À';
-    default:
-      return char + "\u0300"
-  }
-};
-function acuteAccent(char) {
-  switch (char) {
-    case 'e':
-      return 'é';
-    case 'y':
-      return 'ý';
-    case 'u':
-      return 'ú';
-    case 'i':
-      return 'í';
-    case 'o':
-      return 'ó';
-    case 'a':
-      return 'á';
 
-    case 'E':
-      return 'É';
-    case 'Y':
-      return 'Ý';
-    case 'U':
-      return 'Ú';
-    case 'I':
-      return 'Í';
-    case 'O':
-      return 'Ó';
-    case 'A':
-      return 'Á';
-    default:
-      return char + "\u0301"
-  }
-}
-function circumflex(char) {
-  switch (char) {
-    case 'e':
-      return 'ê';
-    case 'u':
-      return 'û';
-    case 'i':
-      return 'î';
-    case 'o':
-      return 'ô';
-    case 'a':
-      return 'â';
+function modifyStringFunction(conversionTable, _default_append) {
+  return (string) => {
+    if (conversionTable.hasOwnProperty(string)) return conversionTable[string];
 
-    case 'E':
-      return 'Ê';
-    case 'U':
-      return 'Û';
-    case 'I':
-      return 'Î';
-    case 'O':
-      return 'Ô';
-    case 'A':
-      return 'Â';
-    default:
-      return char + "\u0302"
+    if (!_default_append) throw new Error("I do not know how to modify the following string: " + string + ". "
+      + "Change your BiBTeX file or submit a feature request at https://github.com/digitalheir/bibliography-js/issues.");
+    return string + _default_append;
   }
 }
-function dieresis(char) {
-  switch (char) {
-    case 'e':
-      return 'ë';
-    case 'y':
-      return 'ÿ';
-    case 'u':
-      return 'ü';
-    case 'i':
-      return 'ï';
-    case 'o':
-      return 'ö';
-    case 'a':
-      return 'ä';
 
-    case 'E':
-      return 'Ë';
-    case 'Y':
-      return 'Ÿ';
-    case 'U':
-      return 'Ü';
-    case 'I':
-      return 'Ï';
-    case 'O':
-      return 'Ö';
-    case 'A':
-      return 'Ä';
-    default:
-      return char + "\u0308"
-  }
-}
-function tilde(char) {
-  switch (char) {
-    case 'o':
-      return 'õ';
-    case 'a':
-      return 'ã';
-    case 'n':
-      return 'ñ';
+const barredLetter = modifyStringFunction({
+  l: "ł",
+  L: "Ł"
+});
 
-    case 'O':
-      return 'Õ';
-    case 'A':
-      return 'Ã';
-    case 'N':
-      return 'Ñ';
-    default:
-      return char + "\u0303"
-  }
-}
-function cedilla(char) {
-  switch (char) {
-    case "c":
-      return "ç";
-    default:
-      return char + "\u0327"
-  }
-}
-function caron(char) {
-  switch (char) {
-    case "s":
-      return "š";
-    default:
-      return char + "\u030C"
-  }
-}
-function ringOverLetter(char) {
-  switch (char) {
-    case 'a':
-      return "å";
-    case 'A':
-      return "Å";
-    case 'y':
-      return "ẙ";
-    default:
-      return char + "\u030A";
-  }
-}
+const graveAccent = modifyStringFunction({
+  e: 'è',
+  u: 'ù',
+  i: 'ì',
+  o: 'ò',
+  a: 'à',
+  E: 'È',
+  U: 'Ù',
+  I: 'Ì',
+  O: 'Ò',
+  A: 'À'
+}, "\u0300");
+
+const acuteAccent = modifyStringFunction({
+  e: 'é',
+  y: 'ý',
+  u: 'ú',
+  i: 'í',
+  o: 'ó',
+  a: 'á',
+
+  E: 'É',
+  Y: 'Ý',
+  U: 'Ú',
+  I: 'Í',
+  O: 'Ó',
+  A: 'Á'
+}, "\u0301");
+const circumflex = modifyStringFunction({
+  e: 'ê',
+  u: 'û',
+  i: 'î',
+  o: 'ô',
+  a: 'â',
+
+  E: 'Ê',
+  U: 'Û',
+  I: 'Î',
+  O: 'Ô',
+  A: 'Â'
+}, "\u0302");
+
+const dieresis = modifyStringFunction({
+  e: 'ë',
+  y: 'ÿ',
+  u: 'ü',
+  i: 'ï',
+  o: 'ö',
+  a: 'ä',
+
+  E: 'Ë',
+  Y: 'Ÿ',
+  U: 'Ü',
+  I: 'Ï',
+  O: 'Ö',
+  A: 'Ä'
+}, "\u0308");
+
+const tilde = modifyStringFunction({
+  o: 'õ',
+  a: 'ã',
+  n: 'ñ',
+
+  O: 'Õ',
+  A: 'Ã',
+  N: 'Ñ'
+}, "\u0303");
+
+const cedilla = modifyStringFunction({
+  c: "ç"
+}, "\u0327");
+
+const caron = modifyStringFunction({
+  s: "š"
+}, "\u030C");
+
+const ringOverLetter = modifyStringFunction({
+  a: "å",
+  A: "Å",
+  y: "ẙ"
+}, "\u030A");
+
 function tieLetters(chars) {
   //o͡o
   return chars.charAt(0) + '͡' + chars.substring(1);
