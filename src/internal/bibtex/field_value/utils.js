@@ -1,5 +1,5 @@
 function flattenToString(authorToken) {
-  if (typeof authorToken == 'string') return authorToken;
+  if (typeof authorToken === 'string') return authorToken;
   else if (authorToken.type == 'braced')  return flattenToString(authorToken.data);
   else if (authorToken.type == 'ws') {
     //console.log(authorToken)
@@ -15,7 +15,7 @@ function capitalizeFirstLetter(string) {
 }
 
 const getFirstLetter = function (wordObj) {
-  if (typeof wordObj == 'string') {
+  if (typeof wordObj === 'string') {
     if (wordObj.length > 1 && wordObj.charAt(0) == '/') return wordObj.charAt(1);
     else if (wordObj.length > 0) return wordObj.charAt(0);
     else return null;

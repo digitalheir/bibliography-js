@@ -12,7 +12,7 @@ export default class Lexer {
   }
 
   getStringUntilNonEscapedChar(terminalRegex) {
-    if (typeof terminalRegex == 'string') {
+    if (typeof terminalRegex === 'string') {
     }
     const chars = [];
     for (let i = this.pos; i < this.len; i++) {

@@ -30,9 +30,9 @@ export default class Bibliography {
     let rawEntries = [];
     let preamble = {};
     nearleyObject.entries.forEach((obj) => {
-      if (typeof obj == 'object' && obj._id) // Bib entry
+      if (typeof obj === 'object' && obj._id) // Bib entry
         rawEntries.push(obj);
-      else if (typeof obj == 'object') {
+      else if (typeof obj === 'object') {
         switch (obj.type) {
           case 'string':
             let keyval = obj.data;

@@ -2,16 +2,16 @@ import {diacritics, specialChars} from './specialCharsHandlers'
 import Immutable, {Set} from 'immutable'
 
 function flatten(obj) {
-  if (typeof obj == 'object' &&
+  if (typeof obj === 'object' &&
     (obj.type == 'quotedstring' ||
     obj.type == 'quotedstringwrapper' ||
     obj.type == 'bracedstringwrapper')
   ) return flatten(obj.data);
-  else if (typeof obj == 'object' && obj.type == 'ws') return obj;
+  else if (typeof obj === 'object' && obj.type == 'ws') return obj;
   else if (obj._raw) return flatten(obj._raw);
-  else if (typeof obj == 'object' && obj.string) return obj.string;
+  else if (typeof obj === 'object' && obj.string) return obj.string;
   else if (obj.constructor == Number) return obj+"";
-  else if (typeof obj == 'string') return obj;
+  else if (typeof obj === 'string') return obj;
   else if (obj.constructor == Array) {
     let tokens = [];
     obj.forEach(o => {
@@ -24,7 +24,7 @@ function flatten(obj) {
     return tokens;
     //return tokens.reduce((prev, curr) => {
     //  const previousToken = prev[prev.length - 1];
-    //  if (typeof previousToken == 'string' && typeof curr == 'string')
+    //  if (typeof previousToken === 'string' && typeof curr === 'string')
     //    prev[prev.length - 1] = prev[prev.length - 1] + curr;
     //  else prev.push(curr);
     //  return prev;
@@ -53,7 +53,7 @@ function toWords(wordParts, retainWhitespace) {
       prev.push(current);
       //prev[prev.length - 1].push(current)
     }
-    else if (typeof current == 'string') prev[prev.length - 1].push(current);
+    else if (typeof current === 'string') prev[prev.length - 1].push(current);
     else throw new Error("! toWords error: " + JSON.stringify(current));
     return prev;
   }, [[]])
@@ -63,7 +63,7 @@ function concatStrings(array) {
   for (let i = 0; i < array.length; i++) {
     const obj = array[i];
     if (obj == ',') words.push({type: ','});
-    else if (typeof obj == 'string') {
+    else if (typeof obj === 'string') {
       if (typeof(words[words.length - 1]) == 'string') words[words.length - 1] = words[words.length - 1] + obj;
       else words.push(obj);
     } else if (obj.type == 'ws') words.push(obj);
@@ -174,7 +174,7 @@ export default class StringValue {
   // Outside \verb, the first seven of them can be typeset by prepending a backslash; for the other three, use the macros \textasciitilde, \textasciicircum, and \textbackslash.
   static computeUnicodeString(braceDepth, obj) {
     //console.log(braceDepth, JSON.stringify(obj));
-    if (typeof obj == 'string') return obj;
+    if (typeof obj === 'string') return obj;
     else if (obj.constructor == Array) return obj.map(o => {
       if (!o) throw new Error("Expected non-null elements in " + JSON.stringify(o));
       //console.log("array", obj);
@@ -185,11 +185,11 @@ export default class StringValue {
       //console.log("toUnicode", (obj.toUnicode()));
       return obj.toUnicode();
     }
-    else if (typeof obj == 'object' && (obj.type == 'number' || obj.type == 'id' || obj.type == 'ws')) return StringValue.computeUnicodeString(0, obj.string);
-    else if (typeof obj == 'object' && obj.unicode) return obj.unicode;
+    else if (typeof obj === 'object' && (obj.type == 'number' || obj.type == 'id' || obj.type == 'ws')) return StringValue.computeUnicodeString(0, obj.string);
+    else if (typeof obj === 'object' && obj.unicode) return obj.unicode;
     else if (obj.constructor === Number) return obj + "";
-    else if (typeof obj == 'object' && obj.type == 'quotedstring') return StringValue.computeUnicodeString(braceDepth, obj.data);
-    else if (typeof obj == 'object' && (obj.type == 'quotedstringwrapper' || obj.type == 'bracedstringwrapper')) return StringValue.computeUnicodeString(0, obj.data);
+    else if (typeof obj === 'object' && obj.type == 'quotedstring') return StringValue.computeUnicodeString(braceDepth, obj.data);
+    else if (typeof obj === 'object' && (obj.type == 'quotedstringwrapper' || obj.type == 'bracedstringwrapper')) return StringValue.computeUnicodeString(0, obj.data);
     /**
      * A special character is a
      * part of a field starting with a left brace being at brace depth 0 immediately followed with a backslash,
@@ -220,7 +220,7 @@ export default class StringValue {
   }
 
   static joinSimpleString(data) {
-    if (typeof data == 'string') return data;
+    if (typeof data === 'string') return data;
     else if (data.constructor == Array) {
       const str = [];
       for (let i = 0; i < data.length; i++) {
@@ -248,7 +248,7 @@ export default class StringValue {
       return new StringValue({
         type: wrapper.type,
         data: wrapper.data.map((strObj) => {
-          if (typeof strObj == 'object' && strObj.stringref) {
+          if (typeof strObj === 'object' && strObj.stringref) {
             const refName = strObj.stringref;
             if (referenceStack.has(refName)) throw new Error("Cycle detected: " + refName);
             if (compiledSoFar[refName]) return compiledSoFar[refName];

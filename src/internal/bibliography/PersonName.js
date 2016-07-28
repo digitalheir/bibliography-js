@@ -2,7 +2,7 @@ import referenceFormats from './ReferenceFormats'
 import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../bibtex/field_value/utils'
 
 function word2string(obj) {
-  if (typeof obj == 'string') return obj;
+  if (typeof obj === 'string') return obj;
   else if (obj.type == 'braced') return word2string(obj.data);
   else if (obj.unicode) return obj.unicode;
   else if (obj.string) return obj.string;

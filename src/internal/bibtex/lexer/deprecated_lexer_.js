@@ -125,7 +125,7 @@
 //  }
 //
 //  getStringUntilNonEscapedChar(terminalRegex) {
-//    if (typeof terminalRegex == 'string') {
+//    if (typeof terminalRegex === 'string') {
 //
 //    }
 //    const chars = [];

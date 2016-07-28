@@ -28,12 +28,12 @@
 
 @{%
 var isNumber = function(x) {return x.constructor === Number || (typeof x== 'object'&&x.type == 'number')};
-var tok_id =              {test: function(x) {return typeof x == 'object' && x.type=='id'; }}
-var entry_type_bib =      {test: function(x) {return typeof x == 'object' && x.type=='@bib'; }}
-var entry_type_string =   {test: function(x) {return typeof x == 'object' && x.type=='@string'; }}
-var entry_type_preamble = {test: function(x) {return typeof x == 'object' && x.type=='@preamble'; }}
-var entry_type_comment =  {test: function(x) {return typeof x == 'object' && x.type=='@comment'; }}
-var ws =                  {test: function(x) {return typeof x == 'object' && x.type=='ws';}}
+var tok_id =              {test: function(x) {return typeof x === 'object' && x.type=='id'; }}
+var entry_type_bib =      {test: function(x) {return typeof x === 'object' && x.type=='@bib'; }}
+var entry_type_string =   {test: function(x) {return typeof x === 'object' && x.type=='@string'; }}
+var entry_type_preamble = {test: function(x) {return typeof x === 'object' && x.type=='@preamble'; }}
+var entry_type_comment =  {test: function(x) {return typeof x === 'object' && x.type=='@comment'; }}
+var ws =                  {test: function(x) {return typeof x === 'object' && x.type=='ws';}}
 var num =                 {test: isNumber}
 var pound =     {literal: '#' }
 var eq =        {literal: '=' }
