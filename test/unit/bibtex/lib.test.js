@@ -47,7 +47,8 @@ describe('BiBTeX', () => {
       const markup = ReactDOMServer.renderToStaticMarkup(
         <Entry entry={bibliography.entries['navarro2008molecular']}/>
       );
-      //console.log(markup.replace(/<[^>]+>/g, ''));
+      console.log(markup);
+      console.log(markup.replace(/<[^>]+>/g, ''));
       assert(markup.replace(/<[^>]+>/g, ''),
         "Navarro P, Chambers I, Karwacki-Neisius V, et al. " +
         "Molecular coupling of Xist regulation and pluripotency. " +
