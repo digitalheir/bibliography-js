@@ -30,7 +30,12 @@ import bibliography from 'bibliography';
 ```
 
 ## Usage
+To render the following AMA style reference:
+
+<span class="_bib_citation _bib_ama _bib_article" id="navarro2008molecular" itemscope="" itemtype="https://schema.org/CreativeWork"><span class="_bib_authors_wrapper"><span class="_bib_authors"><span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Navarro</span> P</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Chambers</span> I</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Karwacki-Neisius</span> V</span></span>, et al</span>.</span> <span class="_bib_title_wrapper"><cite class="_bib_title" itemprop="name">Molecular coupling of Xist regulation and pluripotency</cite>.</span> <span class="_bib_journal"><span><cite itemscope="" itemtype="https://schema.org/Periodical" itemid="#_bib_journal_Science" class="_bib_journal"><span itemprop="name">Science</span></cite>.</span> <span itemprop="isPartOf" itemscope="" itemtype="http://schema.org/PublicationIssue"><span itemprop="datePublished" datetime="2008" class="_bib_year">2008</span>;(<span itemprop="isPartOf" itemscope="" itemtype="https://schema.org/PublicationVolume" class="_bib_volume"><span itemprop="volumeNumber">321</span><link itemprop="isPartOf" href="#_bib_journal_Science"/></span>):<span class="_bib_pages"><span itemprop="pageStart">1693</span>-<span itemprop="pageEnd">1695</span></span>.</span></span> <span class="_bib_url"><a itemprop="url" href="http://www.sciencemag.org/cgi/content/full/321/5896/1693">http://www.sciencemag.org/cgi/content/full/321/5896/1693</a>.</span> <span class="_bib_access_date">Accessed <span datetime="2009-06-04">June 4, 2009</span>.</span></span>
+
 ```js
+    import React from 'react'
     import Bibliography, {parseString} from 'bibliography'
     import AMA from 'bibliography/AMA'
 
@@ -52,21 +57,9 @@ import bibliography from 'bibliography';
 
     const markup = ReactDOMServer.renderToStaticMarkup(<AMA entry={bibliography.entries['navarro2008molecular']}/>);
 
-    // Print string
+    // Renders <span class="_bib_citation _bib_ama _bib_article" id="navarro2008molecular" itemscope="" itemtype="https://schema.org/CreativeWork"><span class="_bib_authors_wrapper"><span class="_bib_authors"><span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Navarro</span> P</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Chambers</span> I</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Karwacki-Neisius</span> V</span></span>, et al</span>.</span> <span class="_bib_title_wrapper"><cite class="_bib_title" itemprop="name">Molecular coupling of Xist regulation and pluripotency</cite>.</span> <span class="_bib_journal"><span><cite itemscope="" itemtype="https://schema.org/Periodical" itemid="#_bib_journal_Science" class="_bib_journal"><span itemprop="name">Science</span></cite>.</span> <span itemprop="isPartOf" itemscope="" itemtype="http://schema.org/PublicationIssue"><span itemprop="datePublished" datetime="2008" class="_bib_year">2008</span>;(<span itemprop="isPartOf" itemscope="" itemtype="https://schema.org/PublicationVolume" class="_bib_volume"><span itemprop="volumeNumber">321</span><link itemprop="isPartOf" href="#_bib_journal_Science"/></span>):<span class="_bib_pages"><span itemprop="pageStart">1693</span>-<span itemprop="pageEnd">1695</span></span>.</span></span> <span class="_bib_url"><a itemprop="url" href="http://www.sciencemag.org/cgi/content/full/321/5896/1693">http://www.sciencemag.org/cgi/content/full/321/5896/1693</a>.</span> <span class="_bib_access_date">Accessed <span datetime="2009-06-04">June 4, 2009</span>.</span></span>
     console.log(markup);
 ```
-
-<span class="_bib_citation _bib_ama _bib_article" id="navarro2008molecular" itemscope="" itemtype="https://schema.org/CreativeWork"><span class="_bib_authors_wrapper"><span
-class="_bib_authors"><span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Navarro<
-/span> P</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">Chamb
-ers</span> I</span></span>, <span itemprop="author" itemscope="" itemtype="https://schema.org/Person" class="_bib_author"><span itemprop="name"><span itemprop="familyName">K
-arwacki-Neisius</span> V</span></span>, et al</span>.</span> <span class="_bib_title_wrapper"><cite class="_bib_title" itemprop="name">Molecular coupling of Xist regulation
-and pluripotency</cite>.</span> <span class="_bib_journal"><span><cite itemscope="" itemtype="https://schema.org/Periodical" itemid="#_bib_journal_Science" class="_bib_journ
-al"><span itemprop="name">Science</span></cite>.</span> <span itemprop="isPartOf" itemscope="" itemtype="http://schema.org/PublicationIssue"><span itemprop="datePublished" d
-atetime="2008" class="_bib_year">2008</span>;(<span itemprop="isPartOf" itemscope="" itemtype="https://schema.org/PublicationVolume" class="_bib_volume"><span itemprop="volu
-meNumber">321</span><link itemprop="isPartOf" href="#_bib_journal_Science"/></span>):<span class="_bib_pages"><span itemprop="pageStart">1693</span>-<span itemprop="pageEnd"
->1695</span></span>.</span></span> <span class="_bib_url"><a itemprop="url" href="http://www.sciencemag.org/cgi/content/full/321/5896/1693">http://www.sciencemag.org/cgi/con
-tent/full/321/5896/1693</a>.</span> <span class="_bib_access_date">Accessed <span datetime="2009-06-04">June 4, 2009</span>.</span></span>
 
 ## License
 MIT
