@@ -37,3 +37,8 @@ lib
 nbproject
 .idea
 .node_history
+
+/AMA.js
+/Bibliography.js
+/MLA.js
+/internal/

@@ -1,7 +1,7 @@
 {
   "name": "bibliography",
   "description": "Library for parsing and rendering bibliographic entities (ie. convert to and from BibTex, AMA reference, etc)",
-  "version": "0.6.0",
+  "version": "0.1.0",
   "main": "Bibliography.js",
   "author": "digitalheir",
   "repository": {
@@ -22,9 +22,9 @@
     }
   },
   "dependencies": {
-    "immutable": "3.8.1",
+    "immutable": "^3.8.1",
     "moment": "^2.14.1",
-    "nearley": "2.6.0"
+    "nearley": "^2.6.0"
   },
   "devDependencies": {
     "react": "^15.0.0",

@@ -2,8 +2,6 @@
 
 ![Build Status](https://img.shields.io/travis/digitalheir/bibliography.svg)
 ![Coverage](https://img.shields.io/coveralls/digitalheir/bibliography.svg)
-![Downloads](https://img.shields.io/npm/dm/bibliography.svg)
-![Downloads](https://img.shields.io/npm/dt/bibliography.svg)
 ![npm version](https://img.shields.io/npm/v/bibliography.svg)
 ![dependencies](https://img.shields.io/david/digitalheir/bibliography.svg)
 ![dev dependencies](https://img.shields.io/david/dev/digitalheir/bibliography.svg)
@@ -36,6 +34,7 @@ To render the following AMA style reference:
 
 ```js
     import React from 'react'
+    import ReactDOMServer from 'react-dom/server'
     import Bibliography, {parseString} from 'bibliography'
     import AMA from 'bibliography/AMA'
 
