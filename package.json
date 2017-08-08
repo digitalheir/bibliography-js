@@ -1,6 +1,15 @@
 {
   "name": "bibliography",
-  "description": "Library for parsing and rendering bibliographic entities (ie. convert to and from BibTex, AMA reference, etc)",
+  "description": "Library for parsing and rendering bibliographic entities (ie. convert between BibTex, AMA reference, etc)",
+  "keywords": [
+    "bibliography",
+    "reference",
+    "AMA",
+    "bibtex",
+    "parse",
+    "latex",
+    "references"
+  ],
   "version": "0.1.0",
   "main": "Bibliography.js",
   "author": "digitalheir",
@@ -10,32 +19,17 @@
   },
   "license": "MIT",
   "scripts": {
-    "compile": "babel src --out-dir .",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "prepublish": "npm run compile",
-    "test": "mocha --compilers js:babel-core/register"
-  },
-  "//": {
-    "peerDependencies": {
-      "react": "^15.0.0",
-      "react-dom": "^15.0.0"
-    }
+        "build": "npm run build:min",
+    "build:min": "webpack -p",
+    "build:ts": "tsc",
+    "test": "mocha --compilers ts:ts-node/register,tsx:ts-node/register **/*.spec.ts"
   },
   "dependencies": {
-    "immutable": "^3.8.1",
-    "moment": "^2.14.1",
-    "nearley": "^2.6.0"
+    "latex-to-unicode-converter": "*",
+    "bibtex": "*"
   },
   "devDependencies": {
-    "react": "^15.0.0",
-    "react-dom": "^15.0.0",
-    "babel-cli": "*",
-    "babel-preset-es2015-node4": "*",
-    "babel-preset-react": "*",
-    "chai": "*",
-    "coveralls": "*",
-    "isparta": "*",
-    "mocha": "*",
-    "sinon": "*"
+    "babel-core": "*",
+    "babel-preset-es2015": "*"
   }
 }
