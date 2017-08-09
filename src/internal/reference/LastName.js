@@ -1,5 +1,5 @@
 import React, {PropTypes, Component} from 'react';
-import PersonName from '../bibliography/PersonName';
+import PersonName from '../../bibliography/PersonName';
 
 class LastName extends Component {
   render() {

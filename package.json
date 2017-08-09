@@ -19,7 +19,7 @@
   },
   "license": "MIT",
   "scripts": {
-        "build": "npm run build:min",
+    "build": "npm run build:min",
     "build:min": "webpack -p",
     "build:ts": "tsc",
     "test": "mocha --compilers ts:ts-node/register,tsx:ts-node/register **/*.spec.ts"
@@ -30,6 +30,11 @@
   },
   "devDependencies": {
     "babel-core": "*",
-    "babel-preset-es2015": "*"
+    "babel-preset-es2015": "*",
+    "chai": "^4.1.1",
+    "mocha": "^3.5.0",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.4.2",
+    "webpack": "^3.5.2"
   }
 }

@@ -5,13 +5,13 @@ import {
   capitalizeFirstLetter,
   getFirstLetter,
   startsWithLowerCase
-} from '../../bibtex/field_value/utils'
-import Entry from '../../bibtex/Entry'
+} from '../../../../depr/bibtex/field_value/utils'
+import Entry from '../../../../depr/bibtex/Entry'
 import LastName from '../LastName'
-import PersonName from '../../bibliography/PersonName'
-import AuthorValue from '../../bibtex/field_value/AuthorValue'
-import StringValue from '../../bibtex/field_value/StringValue'
-import PageRange from '../../bibtex/field_value/PageRange'
+import PersonName from '../../../bibliography/PersonName'
+import AuthorValue from '../../../../depr/bibtex/field_value/AuthorValue'
+import StringValue from '../../../../depr/bibtex/field_value/StringValue'
+import PageRange from '../../../../depr/bibtex/field_value/PageRange'
 
 /* intersperse: Return an array with the separator interspersed between
  * each element of the input array.

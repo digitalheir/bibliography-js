@@ -1,13 +1,13 @@
 import React, {PropTypes, Component} from 'react';
 import {assert, expect} from 'chai';
-import Lexer from '../../../src/internal/bibtex/lexer/lexer';
-import StringValue from '../../../src/internal/bibtex/field_value/StringValue';
-import grammar from '../../../src/internal/bibtex/parser/parser';
+import Lexer from '../../../depr/bibtex/lexer/lexer';
+import StringValue from '../../../depr/bibtex/field_value/StringValue';
+import grammar from '../../../depr/bibtex/parser/parser';
 import nearley from 'nearley';
-import Bibliography from '../../../src/internal/bibliography/Bibliography'
+import Bibliography from '../../../src/bibliography/Bibliography'
 //mocha --compilers js:babel-core/register
-import referenceFormats from  '../../../src/internal/bibliography/ReferenceFormats'
-import {parseString} from  '../../../src/internal/bibtex/bibtex'
+import referenceFormats from '../../../src/bibliography/ReferenceFormats'
+import {parseString} from '../../../depr/bibtex/bibtex'
 import ReactDOMServer  from 'react-dom/server'
 import Entry from '../../../src/internal/reference/AMA/Reference';
 import MLA from '../../../src/internal/reference/MLA/Parenthetical';

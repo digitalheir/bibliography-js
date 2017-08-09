@@ -1,5 +1,5 @@
 import {mandatoryFields, optionalFields} from './utils'
-import referenceTypes from '../bibliography/ReferenceFormats'
+import referenceTypes from '../../src/bibliography/ReferenceFormats'
 
 function checkMandatoryFields(id, type, fields) {
   const mandatory = mandatoryFields[type] || [];

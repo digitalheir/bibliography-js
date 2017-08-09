@@ -1,5 +1,5 @@
 import Lexer from './lexer/lexer'
-import Bibliography from './../bibliography/Bibliography'
+import Bibliography from '../../src/bibliography/Bibliography'
 import grammar from './parser/parser';
 import nearley from 'nearley';
 

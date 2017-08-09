@@ -1,12 +1,12 @@
 import React, {PropTypes, Component} from 'react';
 
-import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../../bibtex/field_value/utils'
-import Entry from '../../bibtex/Entry'
+import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../../../../depr/bibtex/field_value/utils'
+import Entry from '../../../../depr/bibtex/Entry'
 import LastName from '../LastName'
-import PersonName from '../../bibliography/PersonName'
-import AuthorValue from '../../bibtex/field_value/AuthorValue'
-import StringValue from '../../bibtex/field_value/StringValue'
-import PageRange from '../../bibtex/field_value/PageRange'
+import PersonName from '../../../bibliography/PersonName'
+import AuthorValue from '../../../../depr/bibtex/field_value/AuthorValue'
+import StringValue from '../../../../depr/bibtex/field_value/StringValue'
+import PageRange from '../../../../depr/bibtex/field_value/PageRange'
 
 /* intersperse: Return an array with the separator interspersed between
  * each element of the input array.
@@ -34,20 +34,6 @@ function renderPersonName(name, i) {
       {intersperse(parts, ' ')}
     </span>
      </span>;
-}
-
-function renderAuthors(authors) {
-  let authorsString = [];
-  if (authors)
-    if (authors.length > 6) {
-      // Siris ES, Miller PD, Barrett-Connor E, et al
-      const toList = [];
-      for (let i = 0; i < 3; i++) toList.push(authors[i]); // List first 3
-      authorsString = intersperse(toList.map(renderPersonName), ', ');
-      authorsString.push(", et al");
-    } else // Florez H, Martinez R, Chakra W, Strickman-Stein M, Levis S
-      authorsString = intersperse(authors.map(renderPersonName), ', ');
-  return authorsString;
 }
 
 function renderPages(pages) {
