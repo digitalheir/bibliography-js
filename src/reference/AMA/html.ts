@@ -1,6 +1,7 @@
 import {BibliographyItem} from "../../bibliography/Bibliography";
 import {Author, renderFullLastName} from "../../bibliography/fields/Author";
 import {determineAuthorNames, isEtAl} from "./util";
+import {capitalizeFirstLetter} from "../../util";
 
 
 function renderAuthorToHtml(author: Author): string {
@@ -28,9 +29,15 @@ function renderNamesToHtml(ama: BibliographyItem) {
   );
 }
 
-export function toHtml(ama: BibliographyItem) {
+function renderTitleToHtml(item: BibliographyItem): string {
+  // TODO some substrings must be immune to tranformation!
+  return capitalizeFirstLetter(item.title.toLowerCase());
+}
+
+export function toHtml(item: BibliographyItem) {
   return span("_bib_item",
     {},
-    renderNamesToHtml(ama)
+    renderNamesToHtml(item),
+    renderTitleToHtml(item)
   )
 }
