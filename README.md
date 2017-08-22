@@ -63,3 +63,8 @@ To render the following AMA style reference:
 
 ## License
 MIT
+
+
+
+## Contact
+Maarten Trompper <<maartentrompper@freedom.nl>>
