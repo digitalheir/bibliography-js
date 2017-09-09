@@ -11,7 +11,3 @@ export function determineAuthorNames(authors: Author[]): (Author | "et al")[] {
   // Florez H, Martinez R, Chakra W, Strickman-Stein M, Levis S
     return authors;
 }
-
-export function isEtAl(author): author is "et al" {
-  return author === "et al";
-}

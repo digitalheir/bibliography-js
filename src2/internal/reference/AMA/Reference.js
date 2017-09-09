@@ -3,7 +3,7 @@ import React, {PropTypes, Component} from 'react';
 import {flattenToString, capitalizeFirstLetter, getFirstLetter, startsWithLowerCase} from '../../../../depr/bibtex/field_value/utils'
 import Entry from '../../../../depr/bibtex/Entry'
 import LastName from '../LastName'
-import PersonName from '../../../bibliography/PersonName'
+import PersonName from '../../../../src/bibliography/PersonName'
 import AuthorValue from '../../../../depr/bibtex/field_value/AuthorValue'
 import StringValue from '../../../../depr/bibtex/field_value/StringValue'
 import PageRange from '../../../../depr/bibtex/field_value/PageRange'
@@ -36,76 +36,6 @@ function renderPersonName(name, i) {
      </span>;
 }
 
-function renderPages(pages) {
-  if (!(pages instanceof PageRange)) throw new Error("Expected object to be instance of PageRange");
-  return <span className="_bib_pages" key="pages">
-      <span itemProp="pageStart">{pages.start}</span>
-    {pages.end ? '-' : ''}
-    {pages.end ? <span itemProp="pageEnd">{pages.end}</span> : ''}
-      </span>;
-}
-function renderVolume(vol, partOfId) {
-  if (!(vol instanceof StringValue)) throw new Error("Expected object to be instance of StringValue");
-  return <span key="volume" itemProp="isPartOf"
-               itemScope={true}
-               itemType="https://schema.org/PublicationVolume"
-               className="_bib_volume">
-    <span itemProp="volumeNumber">{vol.toUnicode()}</span>
-    {(!!partOfId) ? <link itemProp="isPartOf" href={'#' + partOfId}/> : ''}
-    </span>;
-}
-
-/**
- * todo Abbreviate the title of the journal according to the listing in PubMed.
- *
- * For example:
- * Science. 2008;321(5896):1693-1695.
- *
- * @param obj Entry object
- * @returns {string} HTML containing journal data
- */
-function renderJournal(obj) {
-  const journalParts = [];
-
-  const journalId = obj.fields['journal'] ? ("_bib_journal_" + obj.fields['journal'].toUnicode()) : null;
-  if (journalId) {
-    journalParts.push(<span key="journal_name"><cite
-      itemScope={true}
-      itemType="https://schema.org/Periodical"
-      itemID={"#"+ journalId}
-      className="_bib_journal">
-      <span itemProp="name">{obj.fields['journal'].toUnicode()}</span>
-    </cite>.</span>);
-  }
-
-  if (obj.fields['year'] || obj.fields['volume'] || obj.fields['number'] || obj.fields['pages']) {
-    const issueParts = [];
-    if (obj.fields['year']) {
-      const year = obj.fields['year'];
-      if (!(year instanceof StringValue)) throw new Error("Expected object to be instance of StringValue");
-      issueParts.push(<span key="year" itemProp="datePublished" dateTime={year.toUnicode()}
-                            className="_bib_year">{year.toUnicode()}</span>);
-      if (obj.fields['volume'] || obj.fields['number']) issueParts.push(';');
-    }
-    if (obj.fields['volume']) {
-      if (obj.fields['number']) issueParts.push('(');
-      issueParts.push(renderVolume(obj.fields['volume'], journalId));
-      if (obj.fields['number']) issueParts.push(')');
-      if (obj.fields['pages']) issueParts.push(':');
-    } else if (journalId) issueParts.push(<link itemProp="isPartOf" href={'#' + journalId}/>);
-    if (obj.fields['pages'])  issueParts.push(renderPages(obj.fields['pages']));
-
-    journalParts.push(
-      <span key="journal_issue"
-            itemProp="isPartOf"
-            itemScope={true}
-            itemType="http://schema.org/PublicationIssue">{issueParts}.</span>);
-  }
-
-  return (journalParts.length > 0)
-    ? <span key="journal" className="_bib_journal">{intersperse(journalParts, ' ')}</span>
-    : '';
-}
 
 
 function renderStringValueToString(obj) {

@@ -8,7 +8,7 @@ import {
 } from '../../../../depr/bibtex/field_value/utils'
 import Entry from '../../../../depr/bibtex/Entry'
 import LastName from '../LastName'
-import PersonName from '../../../bibliography/PersonName'
+import PersonName from '../../../../src/bibliography/PersonName'
 import AuthorValue from '../../../../depr/bibtex/field_value/AuthorValue'
 import StringValue from '../../../../depr/bibtex/field_value/StringValue'
 import PageRange from '../../../../depr/bibtex/field_value/PageRange'

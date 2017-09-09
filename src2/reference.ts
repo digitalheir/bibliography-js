@@ -1,5 +1,5 @@
-import {BibliographyItem} from "./bibliography/Bibliography";
-import {Author, renderFullLastName} from "./bibliography/fields/Author";
+import {BibliographyItem} from "../src/bibliography/Bibliography";
+import {Author, renderFullLastName} from "../src/bibliography/fields/Author";
 
 export interface ReferenceFormat {
   toHtml: (BibliographyItem) => string;
