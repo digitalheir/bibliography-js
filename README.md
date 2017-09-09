@@ -1,4 +1,4 @@
-# bibliography
+# Bibliography.js
 
 ![Build Status](https://img.shields.io/travis/digitalheir/bibliography-js.svg)
 ![Coverage](https://img.shields.io/coveralls/digitalheir/bibliography-js.svg)
@@ -8,7 +8,7 @@
 ![License](https://img.shields.io/npm/l/bibliography.svg)
 [![Code Climate](https://codeclimate.com/github/digitalheir/bibliography-js/badges/gpa.svg)](https://codeclimate.com/github/digitalheir/bibliography-js)
 
-Library for bibliographic entities. It can parse [BiBTeX](http://www.bibtex.org/) and processes some LaTeX stuff, such as replacing special characters with their Unicode equivalent (for example, `{\"o}`
+Javascript / Typescript library for bibliographic entities. It can parse [BiBTeX](http://www.bibtex.org/) and processes some LaTeX stuff, such as replacing special characters with their Unicode equivalent (for example, `{\"o}`
 is automatically converted to `ö`).
 
 ## Getting Started
